@@ -1,0 +1,205 @@
+<!doctype html>
+
+<!-- Използвал съм само HTML без CSS за показване на markup структурата -->
+<!-- Също така нарочно съм ползвал два space-а вместо TAB - w3schools best practice -->
+
+<html lang="bg-BG">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>COCOSOLIS България — Натурални, био масла за тен и кожа</title>
+  <meta name="description" content="Натурални и био масла за блясък, тен и здрав вид на кожата и косата — продукти, комплекти и оферти." />
+  <link rel="canonical" href="https://cocosolis.com/bg/" />
+  <meta property="og:title" content="COCOSOLIS България — Натурални, био масла" />
+  <meta property="og:description" content="Натурални и био масла за блясък, тен и здрав вид на кожата и косата." />
+  <meta property="og:url" content="https://cocosolis.com/bg/" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- Това видях, че се ползва за SEO оптимизация -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "COCOSOLIS България",
+    "url": "https://cocosolis.com/bg/",
+    "logo": "https://cocosolis.com/path-to-logo.png",
+    "sameAs": [
+      "https://www.facebook.com/cocosolis",
+      "https://www.instagram.com/cocosolis"
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- Това е за Screen Reader ситуации - видях, че се ползва -->
+  <a class="sr-only" href="#main">Прескочи към съдържанието</a>
+
+  <!-- Промоциите отгоре -->
+  <div class="topbar" role="region" aria-label="Актуални промоции">
+    <div class="container">
+      <p>HALLOWEEN PROMO: Шест трансформиращи продукта за кожа и коса — вземи подарък при поръчка.</p>
+    </div>
+  </div>
+
+  <header class="container site-header" aria-label="Главен хедър">
+    <div class="branding">
+      <a href="/" aria-label="COCOSOLIS начална страница">
+        <img src="/images/logo-cocosolis.svg" alt="COCOSOLIS" width="180" height="36" />
+      </a>
+    </div>
+
+    <form class="search" role="search" aria-label="Търсене на продукти" action="/search" method="get">
+      <label for="search-input" class="sr-only">Търсене</label>
+      <input id="search-input" name="q" type="search" placeholder="Търси продукти, серия или артикул..." aria-autocomplete="list" />
+      <button type="submit" aria-label="Търсене">Търси</button>
+    </form>
+
+    <div class="header-actions" aria-hidden="false">
+      <a href="/account" aria-label="Моят профил">Профил</a>
+      <a href="/club" aria-label="Клуб COCOSOLIS">Клуб</a>
+      <a href="/cart" aria-label="Количка (0 продукти)">Количка (0)</a>
+    </div>
+  </header>
+
+  <!-- Навигацията отгоре -->
+  <nav class="container nav-main" aria-label="Главна навигация">
+    <ul>
+      <li><a href="/" aria-current="page">Начало</a></li>
+      <li><a href="/products">Продукти</a></li>
+      <li><a href="/collections/promo">Промо пакети</a></li>
+      <li><a href="/about">За нас</a></li>
+      <li><a href="/contacts">Контакти</a></li>
+      <li><a href="/policies">Условия</a></li>
+    </ul>
+  </nav>
+
+  <!-- И вече самото body -->
+  <main id="main" class="container" aria-labelledby="main-title">
+    <h1 id="main-title" class="sr-only">COCOSOLIS България — Натурални масла за тен, кожа и коса</h1>
+
+    <section class="hero" aria-label="Основни промоции">
+      <h2 class="sr-only">Основни промоции</h2>
+      <div class="hero-inner" role="region" aria-roledescription="carousel" aria-label="Промо банери">
+        <article aria-roledescription="slide" aria-label="HALLOWEEN промо">
+          <h3>HALLOWEEN PROMO — THE MAGICAL 6</h3>
+          <p>Шест трансформиращи продукта — вземи подарък при поръчка.</p>
+          <p><a href="/collections/promo" class="cta">Вземи подарък</a></p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="categories-title" class="container">
+      <h2 id="categories-title">Популярни категории</h2>
+      <ul role="list">
+        <li><a href="/collections/skin">Кожа</a></li>
+        <li><a href="/collections/hair">Коса</a></li>
+        <li><a href="/collections/face">Лице</a></li>
+        <li><a href="/collections/bronze">Автобронзанти</a></li>
+        <li><a href="/collections/glow">Блясък</a></li>
+      </ul>
+    </section>
+
+    <!-- Продукти -->
+    <section aria-labelledby="best-sellers" class="products">
+      <h2 id="best-sellers">Най-продавани</h2>
+      <ul class="product-grid" role="list" aria-live="polite">
+        <li class="product-card" role="listitem">
+          <article itemscope itemtype="https://schema.org/Product" aria-label="CHOCO Suntan & Body Oil">
+            <a href="/product/choco-suntan-body-oil" itemprop="url">
+              <img src="/images/products/choco-110ml.jpg" alt="CHOCO Suntan & Body Oil 110ml" width="320" height="240" loading="lazy" itemprop="image" />
+              <h3 itemprop="name">CHOCO Suntan & Body Oil</h3>
+            </a>
+            <p class="price" aria-label="Цена"><span itemprop="offers" itemscope itemtype="https://schema.org/Offer"><meta itemprop="priceCurrency" content="BGN" /><span itemprop="price">45.00</span> лв.</span></p>
+            <p class="meta">8844 отзива</p>
+            <form action="/cart/add" method="post" aria-label="Добави CHOCO в количката">
+              <input type="hidden" name="product_id" value="choco-110ml" />
+              <button type="submit">Добави</button>
+            </form>
+          </article>
+        </li>
+
+        <li class="product-card" role="listitem">
+          <article itemscope itemtype="https://schema.org/Product" aria-label="GLOW Shimmer Oil">
+            <a href="/product/glow-shimmer-oil">
+              <img src="/images/products/glow-110ml.jpg" alt="GLOW Shimmer Oil 110ml" width="320" height="240" loading="lazy" itemprop="image" />
+              <h3 itemprop="name">GLOW Shimmer Oil</h3>
+            </a>
+            <p class="price"><span itemprop="offers" itemscope itemtype="https://schema.org/Offer"><meta itemprop="priceCurrency" content="BGN" /><span itemprop="price">52.00</span> лв.</span></p>
+            <p class="meta">2356 отзива</p>
+            <form action="/cart/add" method="post" aria-label="Добави GLOW в количката">
+              <input type="hidden" name="product_id" value="glow-110ml" />
+              <button type="submit">Добави</button>
+            </form>
+          </article>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Надолу са останалите секции -->
+    <section aria-labelledby="why-us">
+      <h2 id="why-us">Защо COCOSOLIS?</h2>
+      <ul>
+        <li><strong>Натурални формули:</strong> Сертифицирани съставки и био опции.</li>
+        <li><strong>Клинично подкрепени:</strong> Някои продукти имат клинични изследвания и отзиви.</li>
+        <li><strong>Без жестокост:</strong> Cruelty-free, веган опции.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="newsletter" class="newsletter">
+      <h2 id="newsletter">Абонирай се за промоции</h2>
+      <form action="/newsletter/subscribe" method="post" role="form" aria-label="Абонамент за бюлетин">
+        <label for="email" class="sr-only">Имейл адрес</label>
+        <input id="email" name="email" type="email" placeholder="Въведи имейл за оферти" required />
+        <button type="submit">Абонирай се</button>
+      </form>
+    </section>
+
+  </main>
+
+  <footer aria-label="Футър">
+    <div class="container">
+      <div>
+        <h3>COCOSOLIS</h3>
+        <p>Натурални масла за тен, блясък и здрав вид на кожата и косата.</p>
+      </div>
+
+      <nav aria-label="Бързи връзки">
+        <h4>Връзки</h4>
+        <ul>
+          <li><a href="/products">Продукти</a></li>
+          <li><a href="/about">За нас</a></li>
+          <li><a href="/contacts">Контакти</a></li>
+          <li><a href="/club">Клуб</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Условия и политика">
+        <h4>Политики</h4>
+        <ul>
+          <li><a href="/terms">Условия за ползване</a></li>
+          <li><a href="/privacy">Политика за защита на личните данни</a></li>
+          <li><a href="/cookies">Политика за бисквитки</a></li>
+          <li><a href="/returns">Политика за връщане</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <h4>Контакти</h4>
+        <address>
+          <p>Тел: <a href="tel:+359...">+359 ...</a></p>
+          <p>Email: <a href="mailto:info@cocosolis.com">info@cocosolis.com</a></p>
+        </address>
+      </div>
+    </div>
+
+    <div>
+      <small>&copy; 2016 - <span id="year"></span> COCOSOLIS България — Всички права запазени.</small>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
