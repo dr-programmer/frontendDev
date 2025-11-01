@@ -1,0 +1,172 @@
+<!doctype html>
+
+<!-- Използвал съм само HTML без CSS за показване на markup структурата -->
+<!-- Също така нарочно съм ползвал два space-а вместо TAB - w3schools best practice -->
+
+<html lang="bg-BG">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Клуб COCOSOLIS — Лоялност и награди</title>
+  <meta name="description" content="Програма за лоялност на COCOSOLIS — събирай точки и ги обменяй за отстъпки, специални промоции и подаръци." />
+  <link rel="canonical" href="https://cocosolis.com/bg/loyalty/" />
+  <meta property="og:title" content="Клуб COCOSOLIS — Лоялност и награди" />
+  <meta property="og:description" content="Събирай точки за покупки и действия. Обмени за отстъпки и подаръци." />
+  <meta property="og:type" content="website" />
+</head>
+<body>
+  <a class="sr-only" href="#main">Прескочи към съдържанието</a>
+
+  <div class="topbar" role="region" aria-label="Актуални промоции">
+    <div class="container">
+      <p>HALLOWEEN PROMO: Шест трансформиращи продукта за кожа и коса — вземи подарък при поръчка.</p>
+    </div>
+  </div>
+
+  <header class="container site-header" aria-label="Главен хедър">
+    <div class="branding">
+      <a href="/" aria-label="COCOSOLIS начална страница">
+        <img src="/images/logo-cocosolis.svg" alt="COCOSOLIS" width="180" height="36" />
+      </a>
+    </div>
+
+    <form class="search" role="search" aria-label="Търсене на продукти" action="/search" method="get">
+      <label for="search-input" class="sr-only">Търсене</label>
+      <input id="search-input" name="q" type="search" placeholder="Търси продукти, серия или артикул..." aria-autocomplete="list" />
+      <button type="submit" aria-label="Търсене">Търси</button>
+    </form>
+
+    <nav class="header-actions" aria-hidden="false">
+      <a href="/">Начало</a>
+      <a href="/products">Продукти</a>
+      <a href="/club" aria-current="page">Клуб</a>
+      <a href="/about">За нас</a>
+      <a href="/contacts">Контакти</a>
+      <a href="/policies">Условия</a>
+      <a href="/account">Профил</a>
+      <a href="/cart">Количка (0)</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container" aria-labelledby="main-title">
+    <h1 id="main-title">Клуб COCOSOLIS — Лоялност и награди</h1>
+
+    <section aria-labelledby="benefits-title">
+      <h2 id="benefits-title">Ползи от програмата</h2>
+      <p>Членовете получават точки за всяка покупка и при различни действия. Точките се обменят за отстъпки при бъдещи покупки. Очакват ви специални промоции, подаръци за рожден ден и изненади. Налични са три нива на лоялност.</p>
+      <ul>
+        <li>1 точка за всеки изхарчен 1 лв.</li>
+        <li>Стартови 60 точки при регистрация</li>
+        <li>Специални промоции и пакети с цени за членове</li>
+        <li>Подарък за рожден ден</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="join-title">
+      <h2 id="join-title">Как да се включите</h2>
+      <ol>
+        <li>Създайте акаунт с име, имейл и парола.</li>
+        <li>Влезте в профила си преди да пазарувате, за да трупате точки.</li>
+        <li>Получавате автоматично първите 60 точки при регистрация.</li>
+      </ol>
+      <p><a href="/account">Създайте акаунт или влезте</a></p>
+    </section>
+
+    <section aria-labelledby="earn-title">
+      <h2 id="earn-title">Как да събирате точки</h2>
+      <ul>
+        <li>Покупки в онлайн магазина (1 точка за 1 лв.).</li>
+        <li>Регистрация в сайта (+60 точки).</li>
+        <li>Допълнителни активности според условията на програмата.</li>
+      </ul>
+      <p>При връщане на артикул точките, спечелени от тази покупка, се отнемат.</p>
+    </section>
+
+    <section aria-labelledby="tiers-title">
+      <h2 id="tiers-title">Нива на лоялност</h2>
+      <p>Програмата е на три нива. При натрупване на покупки над определени стойности преминавате на по-високо ниво и получавате повече предимства и отстъпки. Статусът се обновява до ~30 минути след достигане на нивото и се изпраща имейл известие.</p>
+    </section>
+
+    <section aria-labelledby="birthday-title">
+      <h2 id="birthday-title">Рожден ден</h2>
+      <p>Добавете рождената си дата в профила. Точки за рожден ден се начисляват на датата и не по-късно от 30 дни след подаване на информацията. Ако датата за текущата година е минала, точките ще получите през следващата година.</p>
+    </section>
+
+    <section aria-labelledby="faq-title">
+      <h2 id="faq-title">FAQ</h2>
+      <details>
+        <summary>При всяка покупка ли получавате точки?</summary>
+        <p>Да, с изключение на безплатни артикули, част от определени промоции.</p>
+      </details>
+      <details>
+        <summary>Къде да следите точките си?</summary>
+        <p>В раздел „Лоялност и награди“ на „Моят профил“ и на страница „Лоялност“.</p>
+      </details>
+      <details>
+        <summary>Как да прекратите участието си?</summary>
+        <p>Изтрийте акаунта си в „Моят профил“ → „Delete account“. Загубените точки не се възстановяват.</p>
+      </details>
+      <p>Пълни условия: <a href="/loyalty/terms">Условия на Програма за лоялност</a>. Политики за данни: <a href="/privacy">Политика за поверителност</a>.</p>
+    </section>
+
+    <section id="charity" aria-labelledby="charity-title">
+      <h2 id="charity-title">SOS Детски селища България</h2>
+      <p>COCOSOLIS дарява по 1 лв. от всеки закупен продукт на SOS детски селища.</p>
+    </section>
+  </main>
+
+  <footer aria-label="Футър">
+    <div class="container">
+      <div>
+        <h3>COCOSOLIS</h3>
+        <p>Натурални масла за тен, блясък и здрав вид на кожата и косата.</p>
+      </div>
+
+      <nav aria-label="Бързи връзки">
+        <h4>Връзки</h4>
+        <ul>
+          <li><a href="/products">Продукти</a></li>
+          <li><a href="/about">За нас</a></li>
+          <li><a href="/contacts">Контакти</a></li>
+          <li><a href="/club">Клуб</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Условия и политика">
+        <h4>Политики</h4>
+        <ul>
+          <li><a href="/terms">Условия за ползване</a></li>
+          <li><a href="/privacy">Политика за защита на личните данни</a></li>
+          <li><a href="/cookies">Политика за бисквитки</a></li>
+          <li><a href="/returns">Политика за връщане</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <h4>Контакти</h4>
+        <address>
+          <p>Тел: <a href="tel:+359...">+359 ...</a></p>
+          <p>Email: <a href="mailto:info@cocosolis.com">info@cocosolis.com</a></p>
+        </address>
+        <nav aria-label="Последвайте ни">
+          <ul>
+            <li><a href="https://www.facebook.com/cocosolis" rel="me">Facebook</a></li>
+            <li><a href="https://www.instagram.com/cocosolis" rel="me">Instagram</a></li>
+            <li><a href="https://www.tiktok.com/@cocosolis" rel="me">TikTok</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <div>
+      <small>&copy; 2016 - <span id="year"></span> COCOSOLIS България — Всички права запазени.</small>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
+
+

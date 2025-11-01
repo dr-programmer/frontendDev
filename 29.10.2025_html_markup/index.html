@@ -55,24 +55,18 @@
       <button type="submit" aria-label="Търсене">Търси</button>
     </form>
 
-    <div class="header-actions" aria-hidden="false">
-      <a href="/account" aria-label="Моят профил">Профил</a>
-      <a href="/club" aria-label="Клуб COCOSOLIS">Клуб</a>
-      <a href="/cart" aria-label="Количка (0 продукти)">Количка (0)</a>
-    </div>
+    <!-- Навигацията отгоре -->
+    <nav class="header-actions" aria-hidden="false">
+      <a href="/" aria-current="page">Начало</a>
+      <a href="/products">Продукти</a>
+      <a href="/club">Клуб</a>
+      <a href="/about">За нас</a>
+      <a href="/contacts">Контакти</a>
+      <a href="/policies">Условия</a>
+      <a href="/account">Профил</a>
+      <a href="/cart">Количка (0)</a>
+    </nav>
   </header>
-
-  <!-- Навигацията отгоре -->
-  <nav class="container nav-main" aria-label="Главна навигация">
-    <ul>
-      <li><a href="/" aria-current="page">Начало</a></li>
-      <li><a href="/products">Продукти</a></li>
-      <li><a href="/collections/promo">Промо пакети</a></li>
-      <li><a href="/about">За нас</a></li>
-      <li><a href="/contacts">Контакти</a></li>
-      <li><a href="/policies">Условия</a></li>
-    </ul>
-  </nav>
 
   <!-- И вече самото body -->
   <main id="main" class="container" aria-labelledby="main-title">
@@ -97,6 +91,28 @@
         <li><a href="/collections/face">Лице</a></li>
         <li><a href="/collections/bronze">Автобронзанти</a></li>
         <li><a href="/collections/glow">Блясък</a></li>
+      </ul>
+    </section>
+
+    <section id="promo-packages" aria-labelledby="promo-packages-title">
+      <h2 id="promo-packages-title">Промо пакети</h2>
+      <ul role="list" class="promo-grid">
+        <li>
+          <article aria-label="GROW BOOST + GIFT">
+            <h3>GROW BOOST + GIFT</h3>
+            <p>Мощно трио за растеж на косата + несесер Cloud Pouch</p>
+            <p><del>153,00 лв.</del> <strong>130,05 лв.</strong></p>
+            <a href="/products/grow-boost-gift">Добави</a>
+          </article>
+        </li>
+        <li>
+          <article aria-label="HOT TRANSFORMATION + GIFT">
+            <h3>HOT TRANSFORMATION + GIFT</h3>
+            <p>Трио за топене на мазнини и стягане + несесер Cloud Pouch</p>
+            <p><del>171,00 лв.</del> <strong>145,35 лв.</strong></p>
+            <a href="/products/hot-transformation-gift">Добави</a>
+          </article>
+        </li>
       </ul>
     </section>
 
@@ -146,6 +162,39 @@
       </ul>
     </section>
 
+    <section id="reviews" aria-labelledby="reviews-title">
+      <h2 id="reviews-title">Мнения на клиенти</h2>
+      <ul role="list">
+        <li>
+          <article aria-label="Отзив за AQUA Filler-Effect Hyaluron Supreme">
+            <h3>AQUA Filler-Effect Hyaluron Supreme</h3>
+            <p>Топ</p>
+            <p><small>10.10.2025 — потвърдена поръчка</small></p>
+          </article>
+        </li>
+        <li>
+          <article aria-label="Отзив за HAIR Oil Mask 3in1">
+            <h3>HAIR Oil Mask 3in1</h3>
+            <p>Топ</p>
+            <p><small>10.10.2025 — потвърдена поръчка</small></p>
+          </article>
+        </li>
+        <li>
+          <article aria-label="Отзив за SOLIS Self-tanning Face Serum">
+            <h3>SOLIS Self-tanning Face Serum</h3>
+            <p>Топ</p>
+            <p><small>10.10.2025 — потвърдена поръчка</small></p>
+          </article>
+        </li>
+      </ul>
+    </section>
+
+    <section id="charity" aria-labelledby="charity-title">
+      <h2 id="charity-title">SOS Детски селища България</h2>
+      <p>Златен партньор на SOS Детски селища България за 2023 г.</p>
+      <p>COCOSOLIS дарява по 1 лв. от всеки закупен продукт на SOS детски селища.</p>
+    </section>
+
     <section aria-labelledby="newsletter" class="newsletter">
       <h2 id="newsletter">Абонирай се за промоции</h2>
       <form action="/newsletter/subscribe" method="post" role="form" aria-label="Абонамент за бюлетин">
@@ -190,6 +239,13 @@
           <p>Тел: <a href="tel:+359...">+359 ...</a></p>
           <p>Email: <a href="mailto:info@cocosolis.com">info@cocosolis.com</a></p>
         </address>
+        <nav aria-label="Последвайте ни">
+          <ul>
+            <li><a href="https://www.facebook.com/cocosolis" rel="me">Facebook</a></li>
+            <li><a href="https://www.instagram.com/cocosolis" rel="me">Instagram</a></li>
+            <li><a href="https://www.tiktok.com/@cocosolis" rel="me">TikTok</a></li>
+          </ul>
+        </nav>
       </div>
     </div>
 
