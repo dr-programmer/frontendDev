@@ -7,12 +7,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Контакти — COCOSOLIS</title>
-  <meta name="description" content="Свържете се с COCOSOLIS — форма за контакт, имейл, телефон, адрес и полезни връзки." />
-  <link rel="canonical" href="https://cocosolis.com/bg/contacts/" />
-  <meta property="og:title" content="Контакти — COCOSOLIS" />
-  <meta property="og:description" content="Форма за контакт и данни за връзка с екипа на COCOSOLIS." />
+  <title>За нас — COCOSOLIS</title>
+  <meta name="description" content="Научете повече за COCOSOLIS — философия, натурални съставки, устойчивост и мисия за грижа към кожата и природата." />
+  <link rel="canonical" href="https://cocosolis.com/bg/about-us/" />
+  <meta property="og:title" content="За нас — COCOSOLIS" />
+  <meta property="og:description" content="Философия, натурални съставки, устойчивост и грижа за кожата." />
   <meta property="og:type" content="website" />
+
+  <!-- Главен stylesheet за сайта -->
+  <link rel="stylesheet" href="./site_styles.css" />
 </head>
 <body>
   <a class="sr-only" href="#main">Прескочи към съдържанието</a>
@@ -40,8 +43,8 @@
       <a href="/">Начало</a>
       <a href="/products">Продукти</a>
       <a href="/club">Клуб</a>
-      <a href="/about">За нас</a>
-      <a href="/contacts" aria-current="page">Контакти</a>
+      <a href="/about" aria-current="page">За нас</a>
+      <a href="/contacts">Контакти</a>
       <a href="/policies">Условия</a>
       <a href="/account">Профил</a>
       <a href="/cart">Количка (0)</a>
@@ -49,49 +52,30 @@
   </header>
 
   <main id="main" class="container" aria-labelledby="main-title">
-    <h1 id="main-title">Контакти</h1>
+    <h1 id="main-title">За COCOSOLIS</h1>
 
-    <section aria-labelledby="contact-form-title">
-      <h2 id="contact-form-title">Пишете ни</h2>
-      <form action="/contact" method="post" aria-label="Форма за контакт">
-        <label for="name">Име</label>
-        <input id="name" name="name" type="text" required />
-
-        <label for="email">Имейл</label>
-        <input id="email" name="email" type="email" required />
-
-        <label for="subject">Тема</label>
-        <input id="subject" name="subject" type="text" />
-
-        <label for="message">Съобщение</label>
-        <textarea id="message" name="message" rows="6" required></textarea>
-
-        <div>
-          <input id="consent" name="consent" type="checkbox" required />
-          <label for="consent">Съгласен/на съм данните ми да бъдат обработени съгласно <a href="/privacy">Политика за поверителност</a>.</label>
-        </div>
-
-        <button type="submit">Изпрати</button>
-      </form>
+    <section aria-labelledby="philosophy-title">
+      <h2 id="philosophy-title">Философия и мисия</h2>
+      <p>Създаваме натурални, ефективни и приятно усещащи се продукти за кожа и коса, които комбинират качествени съставки, елегантни формули и устойчив подход. Вярваме в прозрачност, грижа и дългосрочни резултати.</p>
     </section>
 
-    <section aria-labelledby="contact-info-title">
-      <h2 id="contact-info-title">Данни за контакт</h2>
-      <address>
-        <p>Имейл: <a href="mailto:info@cocosolis.com">info@cocosolis.com</a></p>
-        <p>Телефон: <a href="tel:+359...">+359 ...</a></p>
-        <p>Адрес: София, България</p>
-      </address>
-    </section>
-
-    <section aria-labelledby="helpful-links-title">
-      <h2 id="helpful-links-title">Полезни връзки</h2>
+    <section aria-labelledby="ingredients-title">
+      <h2 id="ingredients-title">Съставки и качество</h2>
       <ul>
-        <li><a href="/orders-and-delivery">Поръчка и доставка</a></li>
-        <li><a href="/returns">Политика за връщане</a></li>
-        <li><a href="/privacy">Политика за защита на личните данни</a></li>
-        <li><a href="/cookies">Политика за бисквитки</a></li>
+        <li>Натурални и сертифицирани съставки</li>
+        <li>Без жестокост (cruelty-free) и веган опции</li>
+        <li>Внимателно подбрани масла, екстракти и активи</li>
       </ul>
+    </section>
+
+    <section aria-labelledby="sustainability-title">
+      <h2 id="sustainability-title">Устойчивост</h2>
+      <p>Стремим се към отговорно производство и опаковки, подкрепяме социални инициативи и дарителски каузи. Оптимизираме процеси, за да намалим отпечатъка върху природата.</p>
+    </section>
+
+    <section aria-labelledby="care-title">
+      <h2 id="care-title">Грижа за общността</h2>
+      <p>Подкрепяме SOS Детски селища България и даряваме по 1 лв. от всеки закупен продукт в тяхна подкрепа.</p>
     </section>
   </main>
 
