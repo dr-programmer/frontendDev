@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Лично приложение за проследяване на разходи и приходи. Управлявайте финансите си лесно.">
+  <title>Финансов Тракер — Лични Разходи и Приходи</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Skip Link -->
+  <a href="#main-content" class="skip-link">Преминете към основното съдържание</a>
+
+  <header role="banner">
+    <div class="header-inner">
+      <h1><span class="icon icon-logo" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="14" rx="2"/><path d="M1 10h22"/><circle cx="18" cy="14" r="1" fill="currentColor" stroke="none"/></svg></span> Финансов Тракер</h1>
+      <nav aria-label="Основна навигация">
+        <button id="btn-dark-theme" type="button" aria-pressed="false" title="Превключване на тъмна тема">
+          <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+          <span class="sr-only">Тъмна тема</span>
+        </button>
+        <button id="btn-settings" type="button" title="Настройки">
+          <span class="icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6M9 8h6M17 16h6"/></svg></span>
+          <span class="sr-only">Настройки</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" role="main">
+    <!-- Balance Summary -->
+    <section class="summary" aria-label="Финансово обобщение">
+      <div class="summary-card balance" aria-live="polite">
+        <h2>Баланс</h2>
+        <p class="amount" id="total-balance">0.00 лв.</p>
+      </div>
+      <div class="summary-card income">
+        <h2>Приходи</h2>
+        <p class="amount positive" id="total-income" aria-live="polite">+0.00 лв.</p>
+      </div>
+      <div class="summary-card expense">
+        <h2>Разходи</h2>
+        <p class="amount negative" id="total-expenses" aria-live="polite">-0.00 лв.</p>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="filters" aria-label="Филтри за транзакции">
+      <h2 class="sr-only">Филтри</h2>
+      <div class="filter-group">
+        <div class="filter-item">
+          <label for="filter-type">Тип</label>
+          <select id="filter-type">
+            <option value="all">Всички</option>
+            <option value="income">Приходи</option>
+            <option value="expense">Разходи</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="filter-period">Период</label>
+          <select id="filter-period">
+            <option value="all">Всички</option>
+            <option value="day">Днес</option>
+            <option value="week">Тази седмица</option>
+            <option value="month">Този месец</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="filter-category">Категория</label>
+          <select id="filter-category">
+            <option value="all">Всички</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions Bar -->
+    <section class="actions-bar" aria-label="Действия">
+      <button id="btn-add-transaction" class="btn btn-primary" type="button">
+        + Добави транзакция
+      </button>
+      <div class="import-export">
+        <button id="btn-export" class="btn btn-secondary" type="button"><span class="icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m14-7l-5-5-5 5m5-5v12"/></svg></span> Експорт JSON</button>
+        <label for="file-import" class="btn btn-secondary" role="button" tabindex="0" aria-label="Импорт на JSON файл">
+          <span class="icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m5-4l5 5 5-5m-5 5V3"/></svg></span> Импорт JSON
+        </label>
+        <input type="file" id="file-import" accept=".json" class="sr-only">
+      </div>
+    </section>
+
+    <!-- Transactions List -->
+    <section class="transactions-section" aria-label="Списък с транзакции">
+      <h2>Транзакции</h2>
+      <div id="transactions-list" role="list" aria-live="polite">
+        <p class="empty-state" id="empty-msg">Няма транзакции. Добавете първата си транзакция!</p>
+      </div>
+    </section>
+
+    <!-- Chart Section -->
+    <aside class="chart-section" aria-label="Статистики и графики">
+      <h2>Разпределение по категории</h2>
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h3 class="chart-title chart-title--expense">Разходи</h3>
+          <canvas id="category-chart" width="400" height="400" aria-label="Кръгова диаграма за разпределение на разходите по категории" role="img"></canvas>
+          <div id="chart-legend" class="chart-legend" aria-label="Легенда на диаграмата за разходи"></div>
+          <p id="chart-empty" class="empty-state">Няма данни за разходи.</p>
+        </div>
+        <div class="chart-container">
+          <h3 class="chart-title chart-title--income">Приходи</h3>
+          <canvas id="income-chart" width="400" height="400" aria-label="Кръгова диаграма за разпределение на приходите по категории" role="img"></canvas>
+          <div id="income-chart-legend" class="chart-legend" aria-label="Легенда на диаграмата за приходи"></div>
+          <p id="income-chart-empty" class="empty-state">Няма данни за приходи.</p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Add/Edit Transaction Modal -->
+  <div id="modal-transaction" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal" role="document">
+      <div class="modal-header">
+        <h2 id="modal-title">Добави транзакция</h2>
+        <button id="btn-close-modal" class="btn-close" type="button" aria-label="Затвори">✕</button>
+      </div>
+      <form id="form-transaction" novalidate>
+        <input type="hidden" id="tx-id">
+        <div class="form-group">
+          <label for="tx-type">Тип *</label>
+          <select id="tx-type" required>
+            <option value="expense">Разход</option>
+            <option value="income">Приход</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tx-amount">Сума *</label>
+          <input type="number" id="tx-amount" min="0.01" step="0.01" required placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="tx-category">Категория *</label>
+          <select id="tx-category" required>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tx-date">Дата *</label>
+          <input type="date" id="tx-date" required>
+        </div>
+        <div class="form-group">
+          <label for="tx-description">Описание</label>
+          <input type="text" id="tx-description" placeholder="Кратко описание..." maxlength="200">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="tx-recurring">
+            Повтаряща се транзакция (месечно)
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="btn-save-tx">Запази</button>
+          <button type="button" class="btn btn-secondary" id="btn-cancel-tx">Отказ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="modal-settings" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+    <div class="modal" role="document">
+      <div class="modal-header">
+        <h2 id="settings-title">Настройки</h2>
+        <button id="btn-close-settings" class="btn-close" type="button" aria-label="Затвори">✕</button>
+      </div>
+      <form id="form-settings">
+        <div class="form-group">
+          <label for="setting-currency">Валута</label>
+          <select id="setting-currency">
+            <option value="лв.">лв. (BGN)</option>
+            <option value="€">€ (EUR)</option>
+            <option value="$">$ (USD)</option>
+            <option value="£">£ (GBP)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="setting-default-period">Период по подразбиране</label>
+          <select id="setting-default-period">
+            <option value="all">Всички</option>
+            <option value="day">Днес</option>
+            <option value="week">Тази седмица</option>
+            <option value="month">Този месец</option>
+          </select>
+        </div>
+        <fieldset class="form-group">
+          <legend>Категории разходи (с цветове)</legend>
+          <div id="expense-categories-list" class="category-list"></div>
+          <div class="add-category-row">
+            <input type="text" id="new-expense-cat" placeholder="Нова категория...">
+            <input type="color" id="new-expense-color" value="#e74c3c">
+            <button type="button" id="btn-add-expense-cat" class="btn btn-small">+</button>
+          </div>
+        </fieldset>
+        <fieldset class="form-group">
+          <legend>Категории приходи (с цветове)</legend>
+          <div id="income-categories-list" class="category-list"></div>
+          <div class="add-category-row">
+            <input type="text" id="new-income-cat" placeholder="Нова категория...">
+            <input type="color" id="new-income-color" value="#2ecc71">
+            <button type="button" id="btn-add-income-cat" class="btn btn-small">+</button>
+          </div>
+        </fieldset>
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="btn-save-settings">Запази настройки</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="modal-confirm" class="modal-overlay" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-desc" hidden>
+    <div class="modal modal-small" role="document">
+      <h2 id="confirm-title">Потвърждение</h2>
+      <p id="confirm-desc">Сигурни ли сте, че искате да изтриете тази транзакция?</p>
+      <div class="form-actions">
+        <button type="button" class="btn btn-danger" id="btn-confirm-yes">Изтрий</button>
+        <button type="button" class="btn btn-secondary" id="btn-confirm-no">Отказ</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Последно посетен: <time id="last-visited" datetime=""></time></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
