@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React 3 - Упр. 4 - Филтрируем списък с ученици</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0b1220;
+        --panel: #111a2e;
+        --text: #e7eefc;
+        --muted: #a7b4d6;
+        --border: rgba(255, 255, 255, 0.12);
+        --focus: rgba(96, 165, 250, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%),
+          radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+        color: var(--text);
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 28px 16px;
+      }
+
+      .page {
+        width: min(820px, 100%);
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .searchRow {
+        display: grid;
+        gap: 6px;
+      }
+
+      label {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        outline: none;
+      }
+
+      input[type="text"]:focus {
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .item {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 12px 12px;
+        border-radius: 12px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .name {
+        font-weight: 900;
+      }
+
+      .grade {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .empty {
+        color: var(--muted);
+        padding: 8px 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Задача 4: Филтрируем списък с ученици</h1>
+      <div id="root"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+    <script type="text/babel">
+      function SearchInput({ value, onChange }) {
+        return (
+          <div className="searchRow">
+            <label htmlFor="search">Търсене по име</label>
+            <input
+              id="search"
+              type="text"
+              value={value}
+              placeholder="Напр. Иван..."
+              onChange={(e) => onChange(e.target.value)}
+            />
+          </div>
+        );
+      }
+
+      function StudentItem({ student }) {
+        return (
+          <div className="item">
+            <div className="name">{student.name}</div>
+            <div className="grade">Клас: {student.grade}</div>
+          </div>
+        );
+      }
+
+      function FilterableStudentList() {
+        const [query, setQuery] = React.useState("");
+        const students = [
+          { id: 1, name: "Иван Петров", grade: "11А" },
+          { id: 2, name: "Мария Иванова", grade: "11Б" },
+          { id: 3, name: "Петър Георгиев", grade: "10В" },
+          { id: 4, name: "Десислава Димитрова", grade: "12А" },
+          { id: 5, name: "Николай Николов", grade: "9Б" },
+          { id: 6, name: "Елена Стоянова", grade: "11А" }
+        ];
+
+        const filtered = students.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()));
+
+        return (
+          <div className="panel">
+            <SearchInput value={query} onChange={setQuery} />
+            <div className="list">
+              {filtered.length === 0 ? (
+                <p className="empty">Няма намерени ученици</p>
+              ) : (
+                filtered.map((s) => <StudentItem key={s.id} student={s} />)
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      const container = document.getElementById("root");
+      if (ReactDOM.createRoot) {
+        const root = ReactDOM.createRoot(container);
+        root.render(<FilterableStudentList />);
+      } else {
+        ReactDOM.render(<FilterableStudentList />, container);
+      }
+    </script>
+  </body>
+</html>

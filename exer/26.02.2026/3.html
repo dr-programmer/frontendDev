@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React 3 - Упр. 3 - Акордеон</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0b1220;
+        --panel: #111a2e;
+        --text: #e7eefc;
+        --muted: #a7b4d6;
+        --border: rgba(255, 255, 255, 0.12);
+        --focus: rgba(96, 165, 250, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%),
+          radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+        color: var(--text);
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 28px 16px;
+      }
+
+      .page {
+        width: min(820px, 100%);
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .accordion {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      .item + .item {
+        border-top: 1px solid var(--border);
+      }
+
+      .trigger {
+        width: 100%;
+        background: transparent;
+        border: 0;
+        color: var(--text);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+        font-weight: 800;
+        text-align: left;
+      }
+
+      .trigger:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: -3px;
+      }
+
+      .chev {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        flex: none;
+      }
+
+      .content {
+        padding: 0 16px 14px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .content p {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Задача 3: Акордеон (само 1 отворен елемент)</h1>
+      <div id="root"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+    <script type="text/babel">
+      function Accordion({ children }) {
+        const items = React.Children.toArray(children);
+        const [openIndex, setOpenIndex] = React.useState(null);
+
+        return (
+          <div className="accordion">
+            {items.map((child, idx) => {
+              if (!React.isValidElement(child)) return null;
+              const isOpen = openIndex === idx;
+              const onToggle = () => setOpenIndex((cur) => (cur === idx ? null : idx));
+              return React.cloneElement(child, { isOpen, onToggle, index: idx });
+            })}
+          </div>
+        );
+      }
+
+      function AccordionItem({ title, children, isOpen, onToggle, index }) {
+        const contentId = `acc-content-${index}`;
+        const triggerId = `acc-trigger-${index}`;
+
+        return (
+          <div className="item">
+            <button
+              type="button"
+              className="trigger"
+              id={triggerId}
+              aria-expanded={isOpen}
+              aria-controls={contentId}
+              onClick={onToggle}
+            >
+              <span>{title}</span>
+              <span className="chev" aria-hidden="true">
+                {isOpen ? "−" : "+"}
+              </span>
+            </button>
+            {isOpen && (
+              <div className="content" id={contentId} role="region" aria-labelledby={triggerId}>
+                {children}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function App() {
+        return (
+          <Accordion>
+            <AccordionItem title="Какво е React?">
+              <p>React е JavaScript библиотека за изграждане на потребителски интерфейси.</p>
+            </AccordionItem>
+            <AccordionItem title="Какво е компонент?">
+              <p>Компонентът е преизползваем блок от UI, който приема props и връща изглед.</p>
+            </AccordionItem>
+            <AccordionItem title="Какво е JSX?">
+              <p>JSX е синтактично разширение, което позволява да пишем UI като HTML-подобен код в JS.</p>
+            </AccordionItem>
+          </Accordion>
+        );
+      }
+
+      const container = document.getElementById("root");
+      if (ReactDOM.createRoot) {
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+      } else {
+        ReactDOM.render(<App />, container);
+      }
+    </script>
+  </body>
+</html>

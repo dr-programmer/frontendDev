@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React 3 - Упр. 2 - Статус индикатор</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0b1220;
+        --panel: #111a2e;
+        --text: #e7eefc;
+        --muted: #a7b4d6;
+        --border: rgba(255, 255, 255, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(900px 500px at 20% -10%, #1a2b5c, transparent 55%),
+          radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+        color: var(--text);
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 28px 16px;
+      }
+
+      .page {
+        width: min(720px, 100%);
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+      }
+
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.95em;
+        color: #d6e4ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Задача 2: Статус индикатор</h1>
+      <div id="root"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+    <script type="text/babel">
+      function StatusBadge({ status, label }) {
+        let color = "#94a3b8";
+        let text = "Офлайн";
+
+        if (status === "online") {
+          color = "#22c55e";
+          text = "На линия";
+        } else if (status === "away") {
+          color = "#f59e0b";
+          text = "Отсъства";
+        } else if (status === "offline") {
+          color = "#94a3b8";
+          text = "Офлайн";
+        }
+
+        const prefix = label ? `${label} - ` : "";
+
+        return (
+          <div className="badge" role="status" aria-label={`${prefix}${text}`}>
+            <span className="dot" style={{ background: color }} aria-hidden="true" />
+            <span>
+              {prefix}
+              {text}
+            </span>
+          </div>
+        );
+      }
+
+      function App() {
+        return (
+          <div className="panel">
+            <div className="row">
+              <StatusBadge status="online" />
+              <StatusBadge status="away" />
+              <StatusBadge status="offline" />
+            </div>
+            <div className="row">
+              <StatusBadge status="online" label="Иван" />
+              <StatusBadge status="away" label="Мария" />
+              <StatusBadge status="offline" label="Петър" />
+            </div>
+            <div className="hint">
+              Пропс <code>status</code>: "online" | "away" | "offline". Бонус: пропс{" "}
+              <code>label</code>.
+            </div>
+          </div>
+        );
+      }
+
+      const container = document.getElementById("root");
+      if (ReactDOM.createRoot) {
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+      } else {
+        ReactDOM.render(<App />, container);
+      }
+    </script>
+  </body>
+</html>

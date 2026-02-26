@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React 3 - Упр. 5 - Tabs</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0b1220;
+        --panel: #111a2e;
+        --text: #e7eefc;
+        --muted: #a7b4d6;
+        --border: rgba(255, 255, 255, 0.12);
+        --focus: rgba(96, 165, 250, 0.45);
+        --active: rgba(96, 165, 250, 0.25);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%),
+          radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+        color: var(--text);
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 28px 16px;
+      }
+
+      .page {
+        width: min(880px, 100%);
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .tabs {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      .tabButtons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .tabBtn {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 120ms ease, border-color 120ms ease;
+      }
+
+      .tabBtn:hover {
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .tabBtn:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      .tabBtnActive {
+        background: var(--active);
+        border-color: rgba(96, 165, 250, 0.55);
+      }
+
+      .tabPanel {
+        padding: 14px 16px 16px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .tabPanel p {
+        margin: 0 0 8px;
+      }
+
+      .tabPanel p:last-child {
+        margin-bottom: 0;
+      }
+
+      .tabPanel ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .tabPanel button {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .tabPanel button:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Задача 5: Tabs (Tabs + Tab, активен таб + children)</h1>
+      <div id="root"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+    <script type="text/babel">
+      function Tab({ children }) {
+        return children;
+      }
+
+      function Tabs({ children }) {
+        const tabs = React.Children.toArray(children).filter(React.isValidElement);
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        const baseId = React.useId();
+        const tabRefs = React.useRef([]);
+
+        const active = tabs[activeIndex];
+
+        const focusTab = (idx) => {
+          const el = tabRefs.current[idx];
+          if (el && typeof el.focus === "function") el.focus();
+        };
+
+        const onKeyDown = (e) => {
+          if (tabs.length === 0) return;
+
+          const k = e.key;
+          const prev = (i) => (i - 1 + tabs.length) % tabs.length;
+          const next = (i) => (i + 1) % tabs.length;
+
+          if (k === "ArrowLeft") {
+            e.preventDefault();
+            setActiveIndex((cur) => {
+              const idx = prev(cur);
+              queueMicrotask(() => focusTab(idx));
+              return idx;
+            });
+          } else if (k === "ArrowRight") {
+            e.preventDefault();
+            setActiveIndex((cur) => {
+              const idx = next(cur);
+              queueMicrotask(() => focusTab(idx));
+              return idx;
+            });
+          } else if (k === "Home") {
+            e.preventDefault();
+            setActiveIndex(() => {
+              queueMicrotask(() => focusTab(0));
+              return 0;
+            });
+          } else if (k === "End") {
+            e.preventDefault();
+            setActiveIndex(() => {
+              const idx = tabs.length - 1;
+              queueMicrotask(() => focusTab(idx));
+              return idx;
+            });
+          }
+        };
+
+        return (
+          <div className="tabs">
+            <div className="tabButtons" role="tablist" aria-label="Tabs" onKeyDown={onKeyDown}>
+              {tabs.map((tabEl, idx) => {
+                const label = tabEl.props.label;
+                const isActive = idx === activeIndex;
+                const tabId = `${baseId}-tab-${idx}`;
+                const panelId = `${baseId}-panel-${idx}`;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={panelId}
+                    id={tabId}
+                    tabIndex={isActive ? 0 : -1}
+                    className={`tabBtn ${isActive ? "tabBtnActive" : ""}`}
+                    onClick={() => {
+                      setActiveIndex(idx);
+                      queueMicrotask(() => focusTab(idx));
+                    }}
+                    ref={(el) => (tabRefs.current[idx] = el)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              className="tabPanel"
+              role="tabpanel"
+              id={`${baseId}-panel-${activeIndex}`}
+              aria-labelledby={`${baseId}-tab-${activeIndex}`}
+              tabIndex={0}
+            >
+              {active ? active.props.children : null}
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        return (
+          <Tabs>
+            <Tab label="Профил">
+              <p>Име: Иван Петров</p>
+              <p>Клас: 11Б</p>
+            </Tab>
+            <Tab label="Оценки">
+              <ul>
+                <li>Математика: 5.50</li>
+                <li>Физика: 6.00</li>
+              </ul>
+            </Tab>
+            <Tab label="Настройки">
+              <button type="button" onClick={() => alert("Демо действие")}>
+                Промени парола
+              </button>
+            </Tab>
+          </Tabs>
+        );
+      }
+
+      const container = document.getElementById("root");
+      if (ReactDOM.createRoot) {
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+      } else {
+        ReactDOM.render(<App />, container);
+      }
+    </script>
+  </body>
+</html>

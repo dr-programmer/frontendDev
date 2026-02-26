@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React 3 - Упр. 6 - Мини класна стая</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0b1220;
+        --panel: #111a2e;
+        --text: #e7eefc;
+        --muted: #a7b4d6;
+        --border: rgba(255, 255, 255, 0.12);
+        --focus: rgba(96, 165, 250, 0.45);
+        --danger: #fb7185;
+        --ok: #22c55e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%),
+          radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+        color: var(--text);
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 28px 16px;
+      }
+
+      .page {
+        width: min(980px, 100%);
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 12px;
+      }
+
+      @media (max-width: 860px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .panelTitle {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .formGrid {
+        display: grid;
+        grid-template-columns: 1fr 160px auto;
+        gap: 8px;
+        align-items: end;
+      }
+
+      @media (max-width: 640px) {
+        .formGrid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        outline: none;
+      }
+
+      input[type="text"]:focus {
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .btn {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .btn:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      .btnPrimary {
+        border-color: rgba(96, 165, 250, 0.55);
+        background: rgba(96, 165, 250, 0.18);
+      }
+
+      .btnDanger {
+        border-color: rgba(251, 113, 133, 0.6);
+        background: rgba(251, 113, 133, 0.12);
+      }
+
+      .btnSmall {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .row + .row {
+        margin-top: 8px;
+      }
+
+      .rowTop {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: baseline;
+      }
+
+      .studentName {
+        font-weight: 950;
+      }
+
+      .chip {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .scores {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-content: start;
+        justify-content: end;
+      }
+
+      .empty {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .statGrid {
+        display: grid;
+        gap: 8px;
+      }
+
+      .stat {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        display: grid;
+        gap: 4px;
+      }
+
+      .statLabel {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .statValue {
+        font-weight: 950;
+        font-size: 16px;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .modalOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: grid;
+        place-items: center;
+        padding: 18px;
+      }
+
+      .modal {
+        width: min(520px, 100%);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .modalHead {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .modalTitle {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 900;
+      }
+
+      .modalBody {
+        display: grid;
+        gap: 10px;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        outline: none;
+      }
+
+      input[type="number"]:focus {
+        box-shadow: 0 0 0 3px var(--focus);
+      }
+
+      .modalActions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: end;
+        gap: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Задача 6: Мини класна стая</h1>
+      <div id="root"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+    <script type="text/babel">
+      function AddStudentForm({ onAdd }) {
+        const [name, setName] = React.useState("");
+        const [grade, setGrade] = React.useState("");
+
+        function submit(e) {
+          e.preventDefault();
+          const n = name.trim();
+          const g = grade.trim();
+          if (!n || !g) return;
+          onAdd({ name: n, grade: g });
+          setName("");
+          setGrade("");
+        }
+
+        return (
+          <form onSubmit={submit} className="panel">
+            <h2 className="panelTitle">Добавяне на ученик</h2>
+            <div className="formGrid">
+              <label>
+                Име
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Иван Петров" />
+              </label>
+              <label>
+                Клас
+                <input type="text" value={grade} onChange={(e) => setGrade(e.target.value)} placeholder="11Б" />
+              </label>
+              <button className="btn btnPrimary" type="submit">
+                + Добави
+              </button>
+            </div>
+          </form>
+        );
+      }
+
+      function GradeModal({ isOpen, onClose, labelledBy, children }) {
+        if (!isOpen) return null;
+
+        const dialogRef = React.useRef(null);
+
+        React.useEffect(() => {
+          const prev = document.activeElement;
+          queueMicrotask(() => {
+            const el = dialogRef.current;
+            if (!el) return;
+            const first = el.querySelector(
+              'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
+            );
+            if (first) first.focus();
+          });
+
+          return () => {
+            if (prev && typeof prev.focus === "function") prev.focus();
+          };
+        }, []);
+
+        const onKeyDown = (e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            onClose();
+          }
+        };
+
+        return (
+          <div
+            className="modalOverlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={labelledBy}
+            onKeyDown={onKeyDown}
+            onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+          >
+            <div className="modal" ref={dialogRef} onMouseDown={(e) => e.stopPropagation()}>
+              {children}
+            </div>
+          </div>
+        );
+      }
+
+      function StudentRow({ student, onGrade, onDelete }) {
+        const avg =
+          student.scores.length === 0 ? null : student.scores.reduce((a, b) => a + b, 0) / student.scores.length;
+
+        const [isGrading, setIsGrading] = React.useState(false);
+        const [gradeValue, setGradeValue] = React.useState("");
+        const gradeInputId = React.useId();
+        const modalTitleId = React.useId();
+
+        const close = () => {
+          setIsGrading(false);
+          setGradeValue("");
+        };
+
+        const submit = () => {
+          const raw = Number(gradeValue);
+          if (!Number.isFinite(raw)) return;
+          if (raw < 2 || raw > 6) return;
+          onGrade(student.id, raw);
+          close();
+        };
+
+        return (
+          <div className="row">
+            <div>
+              <div className="rowTop">
+                <span className="studentName">{student.name}</span>
+                <span className="chip">Клас: {student.grade}</span>
+                <span className="chip">Оценки: {student.scores.length}</span>
+                <span className="chip">Средно: {avg === null ? "—" : avg.toFixed(2)}</span>
+              </div>
+              <div className="scores">
+                {student.scores.length === 0 ? "Няма оценки." : `Оценки: ${student.scores.map((s) => s.toFixed(2)).join(", ")}`}
+              </div>
+            </div>
+            <div className="actions">
+              <button className="btn btnSmall btnPrimary" type="button" onClick={() => setIsGrading(true)}>
+                Постави оценка
+              </button>
+              <button className="btn btnSmall btnDanger" type="button" onClick={() => onDelete(student.id)}>
+                Изтрий
+              </button>
+            </div>
+
+            <GradeModal isOpen={isGrading} onClose={close} labelledBy={modalTitleId}>
+              <div className="modalHead">
+                <h3 className="modalTitle" id={modalTitleId}>
+                  Постави оценка
+                </h3>
+                <button className="btn btnSmall" type="button" onClick={close}>
+                  Затвори
+                </button>
+              </div>
+
+              <div className="modalBody">
+                <div style={{ color: "var(--muted)", fontSize: 13, fontWeight: 800 }}>
+                  Ученик: <span style={{ color: "var(--text)" }}>{student.name} ({student.grade})</span>
+                </div>
+
+                <label htmlFor={gradeInputId}>
+                  Оценка (2.00 – 6.00)
+                  <input
+                    id={gradeInputId}
+                    type="number"
+                    min="2"
+                    max="6"
+                    step="0.01"
+                    value={gradeValue}
+                    onChange={(e) => setGradeValue(e.target.value)}
+                    placeholder="Напр. 5.50"
+                  />
+                </label>
+
+                <div className="modalActions">
+                  <button className="btn" type="button" onClick={close}>
+                    Отказ
+                  </button>
+                  <button className="btn btnPrimary" type="button" onClick={submit}>
+                    Запази
+                  </button>
+                </div>
+              </div>
+            </GradeModal>
+          </div>
+        );
+      }
+
+      function ClassStats({ students }) {
+        const scores = students.flatMap((s) => s.scores);
+        const countStudents = students.length;
+        const avg = scores.length === 0 ? null : scores.reduce((a, b) => a + b, 0) / scores.length;
+        const max = scores.length === 0 ? null : Math.max(...scores);
+        const min = scores.length === 0 ? null : Math.min(...scores);
+
+        return (
+          <div className="panel">
+            <h2 className="panelTitle">Статистики</h2>
+            <div className="statGrid">
+              <div className="stat">
+                <div className="statLabel">Брой ученици</div>
+                <div className="statValue">{countStudents}</div>
+              </div>
+              <div className="stat">
+                <div className="statLabel">Среден успех (всички оценки)</div>
+                <div className="statValue">{avg === null ? "—" : avg.toFixed(2)}</div>
+              </div>
+              <div className="stat">
+                <div className="statLabel">Най-висока оценка</div>
+                <div className="statValue">{max === null ? "—" : max.toFixed(2)}</div>
+              </div>
+              <div className="stat">
+                <div className="statLabel">Най-ниска оценка</div>
+                <div className="statValue">{min === null ? "—" : min.toFixed(2)}</div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function Classroom() {
+        const [students, setStudents] = React.useState([]);
+        const [sortByAverage, setSortByAverage] = React.useState(false); // бонус
+
+        const addStudent = ({ name, grade }) => {
+          const id = crypto.randomUUID();
+          setStudents((cur) => [...cur, { id, name, grade, scores: [] }]);
+        };
+
+        const deleteStudent = (id) => setStudents((cur) => cur.filter((s) => s.id !== id));
+
+        const gradeStudent = (id, score) => {
+          setStudents((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, scores: [...s.scores, score] } : s))
+          );
+        };
+
+        const view = React.useMemo(() => {
+          if (!sortByAverage) return students;
+          return [...students].sort((a, b) => {
+            const avgA = a.scores.length === 0 ? -Infinity : a.scores.reduce((x, y) => x + y, 0) / a.scores.length;
+            const avgB = b.scores.length === 0 ? -Infinity : b.scores.reduce((x, y) => x + y, 0) / b.scores.length;
+            return avgB - avgA;
+          });
+        }, [students, sortByAverage]);
+
+        return (
+          <div className="layout">
+            <div style={{ display: "grid", gap: 12 }}>
+              <AddStudentForm onAdd={addStudent} />
+
+              <div className="panel">
+                <div className="toolbar">
+                  <button className={`btn btnSmall ${sortByAverage ? "btnPrimary" : ""}`} type="button" onClick={() => setSortByAverage((v) => !v)}>
+                    {sortByAverage ? "Сортиране: по среден успех" : "Сортиране: по добавяне"}
+                  </button>
+                </div>
+
+                <h2 className="panelTitle">Ученици</h2>
+                {view.length === 0 ? (
+                  <p className="empty">Няма добавени ученици.</p>
+                ) : (
+                  view.map((s) => (
+                    <StudentRow
+                      key={s.id}
+                      student={s}
+                      onGrade={gradeStudent}
+                      onDelete={deleteStudent}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+
+            <ClassStats students={students} />
+          </div>
+        );
+      }
+
+      const container = document.getElementById("root");
+      if (ReactDOM.createRoot) {
+        const root = ReactDOM.createRoot(container);
+        root.render(<Classroom />);
+      } else {
+        ReactDOM.render(<Classroom />, container);
+      }
+    </script>
+  </body>
+</html>
