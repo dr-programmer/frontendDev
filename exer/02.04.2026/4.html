@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 4 – Филтрируем каталог с курсове</title>
+  <style>
+    :root {
+      --primary: #017ae0;
+      --success: #00bc89;
+      --error: #ff5241;
+      --warning: #f0a500;
+      --bg: #f5f5f5;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100svh;
+      padding: 32px 16px;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; }
+
+    .controls {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 16px; align-items: center;
+    }
+
+    .controls input {
+      flex: 1; min-width: 180px;
+      padding: 9px 14px; border: 2px solid #ddd;
+      border-radius: var(--radius); font-size: 14px; outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .controls input:focus { border-color: var(--primary); }
+
+    .controls select {
+      padding: 9px 12px; border: 2px solid #ddd;
+      border-radius: var(--radius); font-size: 14px;
+      background: white; outline: none; cursor: pointer;
+    }
+
+    .controls button {
+      padding: 9px 16px; border: 2px solid #ddd;
+      border-radius: var(--radius); font-size: 13px;
+      font-weight: 600; cursor: pointer; background: white;
+      color: #555; transition: all 0.15s;
+    }
+
+    .controls button.active {
+      border-color: var(--primary); background: var(--primary); color: white;
+    }
+
+    .controls button:hover { opacity: 0.85; }
+
+    .clear-btn {
+      background: white !important;
+      color: var(--error) !important;
+      border-color: var(--error) !important;
+    }
+
+    .stats-bar {
+      display: flex; gap: 20px; flex-wrap: wrap;
+      padding: 12px 16px; background: white;
+      border-radius: var(--radius); margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      font-size: 13px; color: #555;
+    }
+
+    .stats-bar span { font-weight: 600; }
+
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .course-card {
+      background: white; border-radius: var(--radius);
+      padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .course-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .course-card h3 { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 10px; color: white;
+      margin-right: 6px; margin-bottom: 8px;
+    }
+
+    .badge-beginner { background: var(--success); }
+    .badge-medium { background: var(--warning); }
+    .badge-advanced { background: var(--error); }
+
+    .top-rated {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 10px;
+      background: #fff3cd; color: #856404;
+    }
+
+    .stars { color: var(--warning); font-size: 14px; margin-bottom: 4px; }
+    .students { font-size: 13px; color: #888; }
+
+    .empty-msg {
+      text-align: center; padding: 40px; color: #888;
+      font-size: 15px; grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const courses = [
+      { id: 1, title: "React Основи", category: "Frontend", level: "Начинаещ", rating: 4.8, students: 1200 },
+      { id: 2, title: "Node.js API", category: "Backend", level: "Среден", rating: 4.5, students: 800 },
+      { id: 3, title: "Docker & K8s", category: "DevOps", level: "Напреднал", rating: 4.9, students: 450 },
+      { id: 4, title: "CSS Grid & Flexbox", category: "Frontend", level: "Начинаещ", rating: 4.3, students: 1500 },
+      { id: 5, title: "PostgreSQL", category: "Backend", level: "Среден", rating: 4.6, students: 620 },
+      { id: 6, title: "CI/CD Pipelines", category: "DevOps", level: "Среден", rating: 4.2, students: 380 },
+      { id: 7, title: "TypeScript Advanced", category: "Frontend", level: "Напреднал", rating: 4.7, students: 700 },
+      { id: 8, title: "GraphQL API Design", category: "Backend", level: "Напреднал", rating: 4.4, students: 510 },
+      { id: 9, title: "Vue.js 3", category: "Frontend", level: "Среден", rating: 4.1, students: 900 },
+      { id: 10, title: "Terraform Basics", category: "DevOps", level: "Начинаещ", rating: 4.0, students: 290 },
+    ];
+
+    function SearchBar({ value, onChange }) {
+      return (
+        <input
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="Търси курс..."
+        />
+      );
+    }
+
+    function FilterPanel({ category, level, onCategoryChange, onLevelChange, onClear }) {
+      return (
+        <React.Fragment>
+          <select value={category} onChange={e => onCategoryChange(e.target.value)}>
+            <option value="all">Всички категории</option>
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="DevOps">DevOps</option>
+          </select>
+          <select value={level} onChange={e => onLevelChange(e.target.value)}>
+            <option value="all">Всички нива</option>
+            <option value="Начинаещ">Начинаещ</option>
+            <option value="Среден">Среден</option>
+            <option value="Напреднал">Напреднал</option>
+          </select>
+          <button className="clear-btn" onClick={onClear}>Изчисти</button>
+        </React.Fragment>
+      );
+    }
+
+    function SortControls({ sortBy, onSort }) {
+      return (
+        <React.Fragment>
+          <button className={sortBy === "rating" ? "active" : ""} onClick={() => onSort("rating")}>
+            По рейтинг
+          </button>
+          <button className={sortBy === "students" ? "active" : ""} onClick={() => onSort("students")}>
+            По студенти
+          </button>
+        </React.Fragment>
+      );
+    }
+
+    function CourseCard({ course }) {
+      const levelClass = {
+        "Начинаещ": "badge-beginner",
+        "Среден": "badge-medium",
+        "Напреднал": "badge-advanced",
+      };
+
+      const stars = "★".repeat(Math.round(course.rating)) + "☆".repeat(5 - Math.round(course.rating));
+
+      return (
+        <div className="course-card">
+          <h3>{course.title}</h3>
+          <div>
+            <span className={"badge " + levelClass[course.level]}>{course.level}</span>
+            {course.rating >= 4.5 && <span className="top-rated">⭐ Top Rated</span>}
+          </div>
+          <div className="stars">{stars} {course.rating}</div>
+          <div className="students">{course.students} студенти</div>
+        </div>
+      );
+    }
+
+    function StatsBar({ children }) {
+      return <div className="stats-bar">{children}</div>;
+    }
+
+    function CourseCatalog() {
+      const [search, setSearch] = useState("");
+      const [category, setCategory] = useState("all");
+      const [level, setLevel] = useState("all");
+      const [sortBy, setSortBy] = useState("rating");
+
+      const filtered = courses
+        .filter(c => c.title.toLowerCase().includes(search.toLowerCase()))
+        .filter(c => category === "all" || c.category === category)
+        .filter(c => level === "all" || c.level === level)
+        .sort((a, b) => b[sortBy] - a[sortBy]);
+
+      const avgRating = filtered.length > 0
+        ? filtered.reduce((sum, c) => sum + c.rating, 0) / filtered.length
+        : 0;
+
+      const totalStudents = filtered.reduce((s, c) => s + c.students, 0);
+
+      return (
+        <div className="container">
+          <h1>Каталог на курсове</h1>
+          <div className="controls">
+            <SearchBar value={search} onChange={setSearch} />
+            <FilterPanel
+              category={category}
+              level={level}
+              onCategoryChange={setCategory}
+              onLevelChange={setLevel}
+              onClear={() => { setSearch(""); setCategory("all"); setLevel("all"); }}
+            />
+            <SortControls sortBy={sortBy} onSort={setSortBy} />
+          </div>
+          <StatsBar>
+            <span>Курсове: {filtered.length}</span>
+            <span>Среден рейтинг: {avgRating.toFixed(1)}</span>
+            <span>Общо студенти: {totalStudents}</span>
+          </StatsBar>
+          <div className="course-grid">
+            {filtered.length === 0
+              ? <p className="empty-msg">Няма намерени курсове</p>
+              : filtered.map(c => <CourseCard key={c.id} course={c} />)
+            }
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<CourseCatalog />);
+  </script>
+</body>
+</html>

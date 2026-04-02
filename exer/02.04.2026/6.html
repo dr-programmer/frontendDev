@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 6 – Виртуална Класна Стая</title>
+  <style>
+    :root {
+      --primary: #017ae0;
+      --success: #00bc89;
+      --error: #ff5241;
+      --warning: #f0a500;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --muted: #888;
+      --border: #e0e0e0;
+      --radius: 12px;
+    }
+
+    body.dark {
+      --bg: #0f1218;
+      --card: #1a1f2e;
+      --text: #e7eefc;
+      --muted: #8899bb;
+      --border: rgba(255,255,255,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      padding: 24px 16px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 { font-size: 22px; font-weight: 700; }
+
+    .dark-toggle {
+      padding: 8px 16px; border: 2px solid var(--border);
+      border-radius: var(--radius); background: var(--card);
+      color: var(--text); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+
+    .dark-toggle:hover { border-color: var(--primary); }
+
+    /* Loading */
+    .loading-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 60vh; font-size: 18px; color: var(--muted);
+    }
+
+    /* Stats Dashboard */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 16px; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    .stat-card .label {
+      font-size: 11px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .value { font-size: 24px; font-weight: 700; }
+
+    /* Controls */
+    .controls-row {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .controls-row input, .controls-row select {
+      padding: 9px 14px; border: 2px solid var(--border);
+      border-radius: var(--radius); font-size: 14px; outline: none;
+      background: var(--card); color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    .controls-row input { flex: 1; min-width: 160px; }
+    .controls-row input:focus { border-color: var(--primary); }
+
+    .btn {
+      padding: 9px 18px; border: none; border-radius: var(--radius);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--error); color: white; }
+
+    /* Forms */
+    .forms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .forms-grid { grid-template-columns: 1fr; }
+    }
+
+    .form-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px; border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .form-card h3 {
+      font-size: 14px; font-weight: 700; margin-bottom: 12px;
+      color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-card input, .form-card select {
+      width: 100%; padding: 9px 12px; border: 2px solid var(--border);
+      border-radius: 8px; font-size: 14px; outline: none;
+      background: var(--bg); color: var(--text);
+      margin-bottom: 8px; transition: border-color 0.2s;
+    }
+
+    .form-card input:focus { border-color: var(--primary); }
+
+    .form-error { color: var(--error); font-size: 12px; margin-bottom: 6px; min-height: 18px; }
+
+    /* Table */
+    .student-table {
+      width: 100%; border-collapse: separate; border-spacing: 0;
+      background: var(--card); border-radius: var(--radius);
+      overflow: hidden; border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .student-table th {
+      background: var(--bg); padding: 10px 14px;
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--muted);
+      text-align: left; font-weight: 700;
+    }
+
+    .student-table td {
+      padding: 10px 14px; font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .student-table tr:hover td { background: var(--bg); }
+
+    .grade-high { color: var(--success); font-weight: 700; }
+    .grade-low { color: var(--error); font-weight: 700; }
+
+    .grade-pill {
+      display: inline-block; padding: 1px 6px;
+      border-radius: 6px; font-size: 13px; margin: 1px;
+    }
+
+    .grade-pill.high { background: rgba(0,188,137,0.15); color: var(--success); }
+    .grade-pill.low { background: rgba(255,82,65,0.15); color: var(--error); }
+
+    /* Mobile cards */
+    .student-cards { display: none; }
+
+    @media (max-width: 700px) {
+      .student-table { display: none; }
+      .student-cards {
+        display: grid; grid-template-columns: 1fr; gap: 12px;
+      }
+      .student-card-item {
+        background: var(--card); border-radius: var(--radius);
+        padding: 16px; border: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }
+      .student-card-item h4 { font-size: 16px; margin-bottom: 4px; }
+      .student-card-item .class-tag {
+        display: inline-block; font-size: 11px; font-weight: 600;
+        padding: 2px 8px; border-radius: 10px;
+        background: var(--primary); color: white; margin-bottom: 8px;
+      }
+      .student-card-item .avg { font-size: 14px; margin-bottom: 6px; }
+      .student-card-item .grades-list { font-size: 13px; color: var(--muted); }
+      .student-card-item .grades-list strong { color: var(--text); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { createContext, useContext, useReducer, useState, useEffect } = React;
+
+    // ========== INITIAL DATA ==========
+    const defaultStudents = [
+      { id: 1, name: "Иван Петров", class: "11А", grades: { "Математика": [5, 6, 5], "Информатика": [6, 5, 6], "Физика": [4, 5] } },
+      { id: 2, name: "Мария Иванова", class: "11Б", grades: { "Математика": [6, 6, 6], "Информатика": [5, 6], "Физика": [5, 4, 5] } },
+      { id: 3, name: "Георги Димитров", class: "11А", grades: { "Математика": [4, 3, 4], "Информатика": [5, 4], "Физика": [3, 4] } },
+      { id: 4, name: "Елена Стоянова", class: "11Б", grades: { "Математика": [6, 5, 6], "Информатика": [6, 6, 6], "Физика": [6, 5] } },
+      { id: 5, name: "Николай Тодоров", class: "11А", grades: { "Математика": [5, 5, 4], "Информатика": [4, 5], "Физика": [5, 5] } },
+      { id: 6, name: "Анна Колева", class: "11Б", grades: { "Математика": [3, 4, 3], "Информатика": [4, 3], "Физика": [3, 3, 2] } },
+      { id: 7, name: "Петър Георгиев", class: "11А", grades: { "Математика": [6, 6, 5], "Информатика": [6, 6], "Физика": [5, 6] } },
+      { id: 8, name: "Светлана Маринова", class: "11Б", grades: { "Математика": [5, 5, 5], "Информатика": [5, 5, 6], "Физика": [4, 5] } },
+      { id: 9, name: "Димитър Василев", class: "11А", grades: { "Математика": [3, 2, 3], "Информатика": [3, 4], "Физика": [2, 3] } },
+      { id: 10, name: "Калина Христова", class: "11Б", grades: { "Математика": [6, 6, 6], "Информатика": [6, 6, 6], "Физика": [6, 6, 6] } },
+    ];
+
+    // ========== CONTEXT + REDUCER ==========
+    const ClassroomContext = createContext(null);
+
+    function classroomReducer(state, action) {
+      switch (action.type) {
+        case "ADD_STUDENT":
+          return {
+            ...state,
+            students: [...state.students, {
+              id: Date.now(),
+              name: action.name,
+              class: action.className,
+              grades: {},
+            }],
+          };
+        case "ADD_GRADE":
+          return {
+            ...state,
+            students: state.students.map(s =>
+              s.id === action.studentId
+                ? {
+                    ...s,
+                    grades: {
+                      ...s.grades,
+                      [action.subject]: [
+                        ...(s.grades[action.subject] || []),
+                        action.grade,
+                      ],
+                    },
+                  }
+                : s
+            ),
+          };
+        case "REMOVE_STUDENT":
+          return {
+            ...state,
+            students: state.students.filter(s => s.id !== action.id),
+          };
+        case "SET_FILTER":
+          return { ...state, classFilter: action.classFilter };
+        case "SET_SEARCH":
+          return { ...state, searchQuery: action.searchQuery };
+        default:
+          return state;
+      }
+    }
+
+    function ClassroomProvider({ children }) {
+      const saved = localStorage.getItem("classroom");
+      const initial = saved ? JSON.parse(saved) : {
+        students: defaultStudents,
+        classFilter: "all",
+        searchQuery: "",
+      };
+
+      const [state, dispatch] = useReducer(classroomReducer, initial);
+
+      useEffect(() => {
+        localStorage.setItem("classroom", JSON.stringify(state));
+      }, [state]);
+
+      return (
+        <ClassroomContext.Provider value={{ ...state, dispatch }}>
+          {children}
+        </ClassroomContext.Provider>
+      );
+    }
+
+    function useClassroom() {
+      const ctx = useContext(ClassroomContext);
+      if (!ctx) throw new Error("useClassroom must be inside Provider");
+      return ctx;
+    }
+
+    // ========== HELPERS ==========
+    function getStudentAverage(student) {
+      const all = Object.values(student.grades).flat();
+      return all.length > 0 ? all.reduce((a, b) => a + b, 0) / all.length : 0;
+    }
+
+    function getClassAverage(students) {
+      if (students.length === 0) return 0;
+      const avgs = students.map(getStudentAverage);
+      return avgs.reduce((a, b) => a + b, 0) / avgs.length;
+    }
+
+    // ========== COMPONENTS ==========
+
+    function DarkModeToggle() {
+      const [dark, setDark] = useState(false);
+
+      useEffect(() => {
+        document.body.classList.toggle("dark", dark);
+      }, [dark]);
+
+      return (
+        <button className="dark-toggle" onClick={() => setDark(d => !d)}>
+          {dark ? "☀ Light Mode" : "🌙 Dark Mode"}
+        </button>
+      );
+    }
+
+    function StatsDashboard() {
+      const { students, classFilter } = useClassroom();
+      const filtered = classFilter === "all"
+        ? students
+        : students.filter(s => s.class === classFilter);
+
+      const classAvg = getClassAverage(filtered);
+
+      const withAvgs = filtered.map(s => ({ ...s, average: getStudentAverage(s) }));
+      const best = withAvgs.length > 0
+        ? withAvgs.sort((a, b) => b.average - a.average)[0]
+        : null;
+
+      const honors = withAvgs.filter(s => s.average >= 5.5).length;
+
+      const avg11A = getClassAverage(students.filter(s => s.class === "11А"));
+      const avg11B = getClassAverage(students.filter(s => s.class === "11Б"));
+
+      return (
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="label">Ученици</div>
+            <div className="value">{filtered.length}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Среден успех</div>
+            <div className="value">{classAvg.toFixed(2)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Най-добър</div>
+            <div className="value" style={{ fontSize: 16 }}>{best ? best.name : "–"}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">Отличници (≥5.50)</div>
+            <div className="value" style={{ color: "var(--success)" }}>{honors}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">11А среден</div>
+            <div className="value">{avg11A.toFixed(2)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="label">11Б среден</div>
+            <div className="value">{avg11B.toFixed(2)}</div>
+          </div>
+        </div>
+      );
+    }
+
+    function SearchBar() {
+      const { classFilter, searchQuery, dispatch } = useClassroom();
+
+      return (
+        <div className="controls-row">
+          <input
+            value={searchQuery}
+            onChange={e => dispatch({ type: "SET_SEARCH", searchQuery: e.target.value })}
+            placeholder="Търсене по име..."
+          />
+          <select
+            value={classFilter}
+            onChange={e => dispatch({ type: "SET_FILTER", classFilter: e.target.value })}
+          >
+            <option value="all">Всички класове</option>
+            <option value="11А">11А</option>
+            <option value="11Б">11Б</option>
+          </select>
+        </div>
+      );
+    }
+
+    function StudentForm() {
+      const { dispatch } = useClassroom();
+      const [name, setName] = useState("");
+      const [cls, setCls] = useState("11А");
+      const [error, setError] = useState("");
+
+      const handleAdd = () => {
+        if (!name.trim()) {
+          setError("Въведете име!");
+          return;
+        }
+        setError("");
+        dispatch({ type: "ADD_STUDENT", name: name.trim(), className: cls });
+        setName("");
+      };
+
+      return (
+        <div className="form-card">
+          <h3>Добави ученик</h3>
+          <input
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleAdd()}
+            placeholder="Име на ученик..."
+          />
+          <select value={cls} onChange={e => setCls(e.target.value)}>
+            <option value="11А">11А</option>
+            <option value="11Б">11Б</option>
+          </select>
+          <div className="form-error">{error}</div>
+          <button className="btn btn-primary" onClick={handleAdd}>Добави</button>
+        </div>
+      );
+    }
+
+    function GradeForm() {
+      const { students, dispatch } = useClassroom();
+      const [studentId, setStudentId] = useState("");
+      const [subject, setSubject] = useState("Математика");
+      const [grade, setGrade] = useState("");
+      const [error, setError] = useState("");
+
+      const handleAdd = () => {
+        const g = Number(grade);
+        if (!studentId) { setError("Изберете ученик!"); return; }
+        if (g < 2 || g > 6) { setError("Оценката трябва да е 2-6!"); return; }
+        setError("");
+        dispatch({ type: "ADD_GRADE", studentId: Number(studentId), subject, grade: g });
+        setGrade("");
+      };
+
+      return (
+        <div className="form-card">
+          <h3>Добави оценка</h3>
+          <select value={studentId} onChange={e => setStudentId(e.target.value)}>
+            <option value="">-- Избери ученик --</option>
+            {students.map(s => (
+              <option key={s.id} value={s.id}>{s.name} ({s.class})</option>
+            ))}
+          </select>
+          <select value={subject} onChange={e => setSubject(e.target.value)}>
+            <option value="Математика">Математика</option>
+            <option value="Информатика">Информатика</option>
+            <option value="Физика">Физика</option>
+          </select>
+          <input
+            type="number" min="2" max="6"
+            value={grade}
+            onChange={e => setGrade(e.target.value)}
+            placeholder="Оценка (2-6)"
+          />
+          <div className="form-error">{error}</div>
+          <button className="btn btn-success" onClick={handleAdd}>Добави оценка</button>
+        </div>
+      );
+    }
+
+    function StudentTable() {
+      const { students, classFilter, searchQuery, dispatch } = useClassroom();
+
+      const filtered = students
+        .filter(s => classFilter === "all" || s.class === classFilter)
+        .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .map(s => ({ ...s, average: getStudentAverage(s) }))
+        .sort((a, b) => b.average - a.average);
+
+      const renderGrades = (grades) => {
+        return Object.entries(grades).map(([subj, vals]) => (
+          <div key={subj} style={{ marginBottom: 2 }}>
+            <strong>{subj}: </strong>
+            {vals.map((g, i) => (
+              <span key={i} className={"grade-pill" + (g >= 5.5 ? " high" : g <= 3 ? " low" : "")}>
+                {g}
+              </span>
+            ))}
+          </div>
+        ));
+      };
+
+      return (
+        <React.Fragment>
+          <table className="student-table">
+            <thead>
+              <tr>
+                <th>Име</th>
+                <th>Клас</th>
+                <th>Оценки</th>
+                <th>Среден</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(s => (
+                <tr key={s.id}>
+                  <td>{s.name}</td>
+                  <td>{s.class}</td>
+                  <td>{renderGrades(s.grades)}</td>
+                  <td>
+                    <span className={s.average >= 5.5 ? "grade-high" : s.average <= 3 ? "grade-low" : ""}>
+                      {s.average.toFixed(2)}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-danger"
+                      style={{ padding: "4px 10px", fontSize: 12 }}
+                      onClick={() => dispatch({ type: "REMOVE_STUDENT", id: s.id })}
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan="5" style={{ textAlign: "center", color: "var(--muted)", padding: 24 }}>Няма намерени ученици</td></tr>
+              )}
+            </tbody>
+          </table>
+
+          <div className="student-cards">
+            {filtered.map(s => (
+              <div key={s.id} className="student-card-item">
+                <h4>{s.name}</h4>
+                <span className="class-tag">{s.class}</span>
+                <div className="avg">
+                  Среден успех:{" "}
+                  <strong className={s.average >= 5.5 ? "grade-high" : s.average <= 3 ? "grade-low" : ""}>
+                    {s.average.toFixed(2)}
+                  </strong>
+                </div>
+                <div className="grades-list">{renderGrades(s.grades)}</div>
+                <button
+                  className="btn btn-danger"
+                  style={{ marginTop: 8, padding: "4px 10px", fontSize: 12 }}
+                  onClick={() => dispatch({ type: "REMOVE_STUDENT", id: s.id })}
+                >
+                  Премахни
+                </button>
+              </div>
+            ))}
+          </div>
+        </React.Fragment>
+      );
+    }
+
+    function App() {
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        const timer = setTimeout(() => setLoading(false), 2000);
+        return () => clearTimeout(timer);
+      }, []);
+
+      if (loading) {
+        return <div className="loading-screen">Зарежда се...</div>;
+      }
+
+      return (
+        <ClassroomProvider>
+          <div className="container">
+            <div className="header">
+              <h1>Виртуална Класна Стая</h1>
+              <DarkModeToggle />
+            </div>
+            <StatsDashboard />
+            <SearchBar />
+            <div className="forms-grid">
+              <StudentForm />
+              <GradeForm />
+            </div>
+            <StudentTable />
+          </div>
+        </ClassroomProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

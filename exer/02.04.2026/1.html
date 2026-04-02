@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 1 – CSS Responsive Профилна Карта</title>
+  <style>
+    :root {
+      --primary: #017ae0;
+      --success: #00bc89;
+      --error: #ff5241;
+      --bg: #f5f5f5;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .profile-card {
+      max-width: 400px;
+      width: 100%;
+      padding: 24px;
+      border-radius: var(--radius);
+      border-top: 4px solid var(--primary);
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .profile-card::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      border-radius: 0 0 var(--radius) var(--radius);
+      background: linear-gradient(to right, var(--primary), var(--success));
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .class-label {
+      display: inline-block;
+      font-size: 13px;
+      color: white;
+      background: var(--primary);
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .average {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+
+    .subjects {
+      display: flex;
+      gap: 12px;
+    }
+
+    .subject {
+      flex: 1;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .subject-name {
+      display: block;
+      font-size: 12px;
+      color: #777;
+      margin-bottom: 6px;
+    }
+
+    .grade {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .grade.high {
+      color: var(--success);
+    }
+
+    .grade.low {
+      color: var(--error);
+    }
+
+    @media (max-width: 600px) {
+      .profile-card {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .subjects {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-card">
+    <div class="avatar">ИП</div>
+    <h2 class="name">Иван Петров</h2>
+    <span class="class-label">Клас 11А</span>
+    <p class="average">Среден успех: <span class="grade high">5.25</span></p>
+
+    <div class="subjects">
+      <div class="subject">
+        <span class="subject-name">Математика</span>
+        <span class="grade high">5.50</span>
+      </div>
+      <div class="subject">
+        <span class="subject-name">Физика</span>
+        <span class="grade low">3.25</span>
+      </div>
+      <div class="subject">
+        <span class="subject-name">Информатика</span>
+        <span class="grade high">6.00</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

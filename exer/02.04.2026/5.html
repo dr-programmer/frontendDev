@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 5 – Kanban Board с Context + useReducer</title>
+  <style>
+    :root {
+      --primary: #017ae0;
+      --success: #00bc89;
+      --error: #ff5241;
+      --warning: #f0a500;
+      --bg: #f5f5f5;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100svh;
+      padding: 24px 16px;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; }
+
+    h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 16px; }
+
+    /* Dashboard */
+    .dashboard {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .dash-card {
+      flex: 1; min-width: 120px;
+      background: white; border-radius: var(--radius);
+      padding: 14px; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .dash-card .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    .dash-card .value { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+
+    /* Form & Filter */
+    .form-row {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .form-row input {
+      flex: 1; min-width: 160px;
+      padding: 9px 14px; border: 2px solid #ddd;
+      border-radius: var(--radius); font-size: 14px; outline: none;
+    }
+
+    .form-row input:focus { border-color: var(--primary); }
+
+    .form-row select {
+      padding: 9px 12px; border: 2px solid #ddd;
+      border-radius: var(--radius); font-size: 14px;
+      background: white; outline: none;
+    }
+
+    .form-row button, .btn {
+      padding: 9px 18px; border: none;
+      border-radius: var(--radius); font-size: 13px;
+      font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { opacity: 0.85; }
+
+    /* Kanban */
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .kanban { grid-template-columns: 1fr; }
+    }
+
+    .kanban-column {
+      background: white; border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      min-height: 200px;
+    }
+
+    .kanban-column h3 {
+      font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: #888; margin-bottom: 12px;
+      padding-bottom: 8px; border-bottom: 2px solid var(--bg);
+    }
+
+    .col-todo h3 { border-bottom-color: var(--primary); }
+    .col-progress h3 { border-bottom-color: var(--warning); }
+    .col-done h3 { border-bottom-color: var(--success); }
+
+    .task-card {
+      background: var(--bg); border-radius: 8px;
+      padding: 12px; margin-bottom: 8px;
+    }
+
+    .task-card .task-title { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; }
+
+    .priority-badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 10px; color: white;
+      text-transform: uppercase;
+    }
+
+    .priority-low { background: var(--success); }
+    .priority-medium { background: var(--warning); }
+    .priority-high { background: var(--error); }
+
+    .task-actions {
+      display: flex; gap: 6px; margin-top: 8px;
+    }
+
+    .task-actions button {
+      padding: 4px 10px; border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .task-actions button:hover { opacity: 0.75; }
+
+    .btn-back { background: #e0e0e0; color: #555; }
+    .btn-move { background: var(--primary); color: white; }
+    .btn-delete { background: var(--error); color: white; }
+
+    .task-date { font-size: 11px; color: #aaa; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { createContext, useContext, useReducer, useState } = React;
+
+    // ========== TASK CONTEXT ==========
+    const TaskContext = createContext(null);
+
+    function taskReducer(state, action) {
+      switch (action.type) {
+        case "ADD_TASK":
+          return {
+            ...state,
+            nextId: state.nextId + 1,
+            tasks: [...state.tasks, {
+              id: state.nextId,
+              title: action.title,
+              priority: action.priority,
+              status: "todo",
+              createdAt: new Date().toLocaleString("bg-BG"),
+            }],
+          };
+        case "MOVE_TASK": {
+          const flow = { "todo": "in-progress", "in-progress": "done" };
+          return {
+            ...state,
+            tasks: state.tasks.map(t =>
+              t.id === action.id
+                ? { ...t, status: flow[t.status] || t.status }
+                : t
+            ),
+          };
+        }
+        case "MOVE_TASK_BACK": {
+          const backFlow = { "done": "in-progress", "in-progress": "todo" };
+          return {
+            ...state,
+            tasks: state.tasks.map(t =>
+              t.id === action.id
+                ? { ...t, status: backFlow[t.status] || t.status }
+                : t
+            ),
+          };
+        }
+        case "DELETE_TASK":
+          return {
+            ...state,
+            tasks: state.tasks.filter(t => t.id !== action.id),
+          };
+        default:
+          return state;
+      }
+    }
+
+    function TaskProvider({ children }) {
+      const [state, dispatch] = useReducer(taskReducer, {
+        tasks: [], nextId: 1,
+      });
+      return (
+        <TaskContext.Provider value={{ tasks: state.tasks, dispatch }}>
+          {children}
+        </TaskContext.Provider>
+      );
+    }
+
+    function useTaskContext() {
+      const ctx = useContext(TaskContext);
+      if (!ctx) throw new Error("useTaskContext трябва да е в TaskProvider");
+      return ctx;
+    }
+
+    // ========== FILTER CONTEXT ==========
+    const FilterContext = createContext(null);
+
+    function FilterProvider({ children }) {
+      const [filters, setFilters] = useState({
+        searchQuery: "", priorityFilter: "all",
+      });
+      const setSearch = (q) => setFilters(p => ({ ...p, searchQuery: q }));
+      const setPriority = (p) => setFilters(prev => ({ ...prev, priorityFilter: p }));
+
+      return (
+        <FilterContext.Provider value={{ ...filters, setSearch, setPriority }}>
+          {children}
+        </FilterContext.Provider>
+      );
+    }
+
+    function useFilterContext() {
+      const ctx = useContext(FilterContext);
+      if (!ctx) throw new Error("useFilterContext трябва да е в FilterProvider");
+      return ctx;
+    }
+
+    // ========== COMPONENTS ==========
+
+    function TaskForm() {
+      const { dispatch } = useTaskContext();
+      const [title, setTitle] = useState("");
+      const [priority, setPriority] = useState("medium");
+
+      const handleAdd = () => {
+        if (!title.trim()) return;
+        dispatch({ type: "ADD_TASK", title: title.trim(), priority });
+        setTitle("");
+      };
+
+      return (
+        <div className="form-row">
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleAdd()}
+            placeholder="Нова задача..."
+          />
+          <select value={priority} onChange={e => setPriority(e.target.value)}>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          <button className="btn btn-primary" onClick={handleAdd}>Добави</button>
+        </div>
+      );
+    }
+
+    function FilterBar() {
+      const { searchQuery, priorityFilter, setSearch, setPriority } = useFilterContext();
+
+      return (
+        <div className="form-row">
+          <input
+            value={searchQuery}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Филтрирай по заглавие..."
+          />
+          <select value={priorityFilter} onChange={e => setPriority(e.target.value)}>
+            <option value="all">Всички приоритети</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      );
+    }
+
+    function TaskCard({ task }) {
+      const { dispatch } = useTaskContext();
+
+      return (
+        <div className="task-card">
+          <div className="task-title">{task.title}</div>
+          <span className={"priority-badge priority-" + task.priority}>{task.priority}</span>
+          <div className="task-date">{task.createdAt}</div>
+          <div className="task-actions">
+            {task.status !== "todo" && (
+              <button className="btn-back" onClick={() => dispatch({ type: "MOVE_TASK_BACK", id: task.id })}>
+                ← Назад
+              </button>
+            )}
+            {task.status !== "done" && (
+              <button className="btn-move" onClick={() => dispatch({ type: "MOVE_TASK", id: task.id })}>
+                Напред →
+              </button>
+            )}
+            <button className="btn-delete" onClick={() => dispatch({ type: "DELETE_TASK", id: task.id })}>
+              Изтрий
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function KanbanColumn({ status, label }) {
+      const { tasks } = useTaskContext();
+      const { searchQuery, priorityFilter } = useFilterContext();
+
+      const filtered = tasks
+        .filter(t => t.status === status)
+        .filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        .filter(t => priorityFilter === "all" || t.priority === priorityFilter);
+
+      const colClass = {
+        "todo": "col-todo",
+        "in-progress": "col-progress",
+        "done": "col-done",
+      };
+
+      return (
+        <div className={"kanban-column " + colClass[status]}>
+          <h3>{label} ({filtered.length})</h3>
+          {filtered.map(task => (
+            <TaskCard key={task.id} task={task} />
+          ))}
+        </div>
+      );
+    }
+
+    function Dashboard() {
+      const { tasks } = useTaskContext();
+      const todo = tasks.filter(t => t.status === "todo").length;
+      const inProg = tasks.filter(t => t.status === "in-progress").length;
+      const done = tasks.filter(t => t.status === "done").length;
+      const highPriority = tasks.filter(t => t.priority === "high").length;
+      const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+
+      return (
+        <div className="dashboard">
+          <div className="dash-card">
+            <div className="label">За правене</div>
+            <div className="value">{todo}</div>
+          </div>
+          <div className="dash-card">
+            <div className="label">В прогрес</div>
+            <div className="value">{inProg}</div>
+          </div>
+          <div className="dash-card">
+            <div className="label">Готово</div>
+            <div className="value">{done}</div>
+          </div>
+          <div className="dash-card">
+            <div className="label">High Priority</div>
+            <div className="value" style={{ color: highPriority > 0 ? "var(--error)" : "inherit" }}>{highPriority}</div>
+          </div>
+          <div className="dash-card">
+            <div className="label">Завършени</div>
+            <div className="value">{pct}%</div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <TaskProvider>
+          <FilterProvider>
+            <div className="container">
+              <h1>Kanban Board</h1>
+              <Dashboard />
+              <TaskForm />
+              <FilterBar />
+              <div className="kanban">
+                <KanbanColumn status="todo" label="За правене" />
+                <KanbanColumn status="in-progress" label="В прогрес" />
+                <KanbanColumn status="done" label="Готово" />
+              </div>
+            </div>
+          </FilterProvider>
+        </TaskProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 3 – Async Data Dashboard</title>
+  <style>
+    :root {
+      --primary: #017ae0;
+      --success: #00bc89;
+      --error: #ff5241;
+      --bg: #f5f5f5;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100svh;
+      padding: 32px 16px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .timer {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 20px;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 140px;
+      background: white;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .api-sections {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .api-section {
+      background: white;
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .api-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #1a1a1a;
+    }
+
+    .status-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .status-badge.loading {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-badge.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .api-section ul {
+      list-style: none;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .api-section ul li {
+      padding: 4px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .api-section ul li:last-child { border-bottom: none; }
+
+    .reload-btn {
+      padding: 10px 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .reload-btn:hover { opacity: 0.85; }
+    .reload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Async Data Dashboard</h1>
+    <div class="timer" id="timer"></div>
+
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card">
+        <div class="label">Потребители</div>
+        <div class="value" id="stat-users">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Постове</div>
+        <div class="value" id="stat-posts">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Коментари</div>
+        <div class="value" id="stat-comments">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Ср. коментари/пост</div>
+        <div class="value" id="stat-avg">–</div>
+      </div>
+    </div>
+
+    <div class="api-sections" id="api-sections">
+      <div class="api-section" id="section-users">
+        <h3>Потребители</h3>
+        <span class="status-badge loading" id="status-users">Зарежда се...</span>
+        <ul id="list-users"></ul>
+      </div>
+      <div class="api-section" id="section-posts">
+        <h3>Постове</h3>
+        <span class="status-badge loading" id="status-posts">Зарежда се...</span>
+        <ul id="list-posts"></ul>
+      </div>
+      <div class="api-section" id="section-comments">
+        <h3>Коментари</h3>
+        <span class="status-badge loading" id="status-comments">Зарежда се...</span>
+        <ul id="list-comments"></ul>
+      </div>
+    </div>
+
+    <button class="reload-btn" id="reload-btn" onclick="loadDashboard()">Презареди</button>
+  </div>
+
+  <script>
+    const API_BASE = "https://jsonplaceholder.typicode.com";
+
+    async function fetchData(endpoint) {
+      const response = await fetch(API_BASE + endpoint);
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status + ": " + response.statusText);
+      }
+      return response.json();
+    }
+
+    function setStatus(name, status, text) {
+      const badge = document.getElementById("status-" + name);
+      badge.className = "status-badge " + status;
+      badge.textContent = text;
+    }
+
+    function renderList(id, items, renderFn) {
+      const ul = document.getElementById("list-" + id);
+      ul.innerHTML = "";
+      items.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = renderFn(item);
+        ul.appendChild(li);
+      });
+    }
+
+    async function loadDashboard() {
+      const btn = document.getElementById("reload-btn");
+      btn.disabled = true;
+
+      // Reset
+      setStatus("users", "loading", "Зарежда се...");
+      setStatus("posts", "loading", "Зарежда се...");
+      setStatus("comments", "loading", "Зарежда се...");
+      document.getElementById("list-users").innerHTML = "";
+      document.getElementById("list-posts").innerHTML = "";
+      document.getElementById("list-comments").innerHTML = "";
+      document.getElementById("stat-users").textContent = "–";
+      document.getElementById("stat-posts").textContent = "–";
+      document.getElementById("stat-comments").textContent = "–";
+      document.getElementById("stat-avg").textContent = "–";
+      document.getElementById("timer").textContent = "";
+
+      const startTime = Date.now();
+
+      try {
+        const [users, posts, comments] = await Promise.all([
+          fetchData("/users"),
+          fetchData("/posts?_limit=10"),
+          fetchData("/comments?_limit=20"),
+        ]);
+
+        const elapsed = Date.now() - startTime;
+        document.getElementById("timer").textContent = "Заредено за " + elapsed + " ms";
+
+        // Stats
+        document.getElementById("stat-users").textContent = users.length;
+        document.getElementById("stat-posts").textContent = posts.length;
+        document.getElementById("stat-comments").textContent = comments.length;
+
+        const avgComments = posts.length > 0
+          ? (comments.reduce((sum) => sum + 1, 0) / posts.length).toFixed(1)
+          : 0;
+        document.getElementById("stat-avg").textContent = avgComments;
+
+        // Render lists
+        setStatus("users", "success", "Заредено");
+        renderList("users", users, u => u.name + " (" + u.email + ")");
+
+        setStatus("posts", "success", "Заредено");
+        renderList("posts", posts, p => p.title);
+
+        setStatus("comments", "success", "Заредено");
+        renderList("comments", comments, c => c.name + " — " + c.email);
+
+      } catch (error) {
+        console.error("Promise.all failed:", error.message);
+
+        const results = await Promise.allSettled([
+          fetchData("/users"),
+          fetchData("/posts?_limit=10"),
+          fetchData("/comments?_limit=20"),
+        ]);
+
+        const elapsed = Date.now() - startTime;
+        document.getElementById("timer").textContent = "Заредено за " + elapsed + " ms (с fallback)";
+
+        const names = ["users", "posts", "comments"];
+        const labels = ["Потребители", "Постове", "Коментари"];
+        const renderers = [
+          u => u.name + " (" + u.email + ")",
+          p => p.title,
+          c => c.name + " — " + c.email,
+        ];
+
+        results.forEach((result, index) => {
+          if (result.status === "fulfilled") {
+            setStatus(names[index], "success", "Заредено");
+            renderList(names[index], result.value, renderers[index]);
+          } else {
+            setStatus(names[index], "error", "Грешка: " + result.reason.message);
+          }
+        });
+      }
+
+      btn.disabled = false;
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
