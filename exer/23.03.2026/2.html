@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 2 – Theme Toggle с Context API</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; transition: background .3s, color .3s; }
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+    .header {
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header h1 { font-size: 20px; font-weight: 800; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 28px;
+    }
+    .quiz-card {
+      border-radius: 14px;
+      padding: 22px;
+      border: 1px solid transparent;
+      transition: background .3s, border-color .3s;
+    }
+    .quiz-card h2 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .quiz-card p { font-size: 13px; opacity: .65; margin-bottom: 14px; }
+    .quiz-card .start-btn {
+      background: #017ae0;
+      color: #fff;
+      padding: 8px 14px;
+    }
+    .footer {
+      padding: 18px 28px;
+      text-align: center;
+      font-size: 13px;
+      transition: background .3s, color .3s;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { createContext, useContext, useState } = React;
+
+    // Step 1: Create Context
+    const ThemeContext = createContext();
+
+    // Step 2: ThemeProvider
+    function ThemeProvider({ children }) {
+      const [theme, setTheme] = useState("light");
+      const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light");
+      return (
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+          {children}
+        </ThemeContext.Provider>
+      );
+    }
+
+    // Step 3: Custom hook
+    function useTheme() {
+      const ctx = useContext(ThemeContext);
+      if (!ctx) throw new Error("useTheme трябва да е в ThemeProvider!");
+      return ctx;
+    }
+
+    // Step 4: Components that READ the theme
+    function Header() {
+      const { theme, toggleTheme } = useTheme();
+      const dark = theme === "dark";
+      return (
+        <div className="header" style={{
+          background: dark ? "#1a1a2e" : "#017ae0",
+          color: "#fff",
+          boxShadow: dark ? "0 2px 16px rgba(0,0,0,0.4)" : "0 2px 12px rgba(1,122,224,0.3)",
+        }}>
+          <h1>ППГИ Тестове</h1>
+          <button
+            onClick={toggleTheme}
+            style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
+          >
+            {dark ? "☀️ Светла тема" : "🌙 Тъмна тема"}
+          </button>
+        </div>
+      );
+    }
+
+    function QuizCard({ title, questions, icon }) {
+      const { theme } = useTheme();
+      const dark = theme === "dark";
+      return (
+        <div className="quiz-card" style={{
+          background: dark ? "#111a2e" : "#f0f7ff",
+          color: dark ? "#e7eefc" : "#0b1220",
+          borderColor: dark ? "rgba(255,255,255,0.1)" : "rgba(1,122,224,0.2)",
+        }}>
+          <div style={{ fontSize: 28, marginBottom: 10 }}>{icon}</div>
+          <h2>{title}</h2>
+          <p>{questions} въпроса</p>
+          <button className="start-btn">Стартирай тест</button>
+        </div>
+      );
+    }
+
+    function Footer() {
+      const { theme } = useTheme();
+      const dark = theme === "dark";
+      return (
+        <div className="footer" style={{
+          background: dark ? "#0b1220" : "#e8f3fd",
+          color: dark ? "#a7b4d6" : "#555",
+          borderTop: dark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(1,122,224,0.15)",
+        }}>
+          © 2026 ППГИ Тестове &nbsp;•&nbsp; Тема: {theme === "dark" ? "🌙 Тъмна" : "☀️ Светла"}
+        </div>
+      );
+    }
+
+    // Step 5: Wrap App in ThemeProvider
+    function App() {
+      const { theme } = useTheme();
+      const dark = theme === "dark";
+      return (
+        <div style={{
+          minHeight: "100svh",
+          background: dark
+            ? "radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%), radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), #0b1220"
+            : "#f8fbff",
+          transition: "background .3s",
+        }}>
+          <Header />
+          <div className="cards">
+            <QuizCard title="HTML Основи"    questions={32} icon="🏗️" />
+            <QuizCard title="CSS Стилове"    questions={28} icon="🎨" />
+            <QuizCard title="JavaScript ES6" questions={45} icon="⚡" />
+            <QuizCard title="React Hooks"    questions={20} icon="⚛️" />
+          </div>
+          <Footer />
+        </div>
+      );
+    }
+
+    function Root() {
+      return (
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Root />);
+  </script>
+</body>
+</html>

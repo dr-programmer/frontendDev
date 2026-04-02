@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 7 – Мини e-commerce</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; min-height: 100svh; transition: background .3s, color .3s; }
+    button {
+      padding: 8px 14px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+    input[type="text"], input[type="email"] {
+      padding: 9px 13px; border-radius: 8px;
+      font-size: 13px; outline: none;
+      transition: border-color .15s;
+    }
+    /* NavBar */
+    .navbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px; padding: 12px 24px;
+      position: sticky; top: 0; z-index: 20;
+    }
+    .navbar-brand { font-size: 18px; font-weight: 800; }
+    .navbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .cart-badge {
+      position: relative; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .badge {
+      position: absolute; top: -6px; right: -8px;
+      background: #ff5241; color: #fff;
+      font-size: 10px; font-weight: 700;
+      min-width: 18px; height: 18px;
+      border-radius: 99px; display: grid; place-items: center;
+      padding: 0 4px;
+    }
+    /* Layout */
+    .body-wrap { display: flex; gap: 0; min-height: calc(100svh - 57px); }
+    .main-col { flex: 1; padding: 20px 20px; min-width: 0; }
+    .side-col { width: 300px; flex-shrink: 0; padding: 20px 16px; border-left-width: 1px; border-left-style: solid; }
+    @media (max-width: 750px) { .body-wrap { flex-direction: column; } .side-col { width: 100%; border-left: none; border-top-width: 1px; border-top-style: solid; } }
+    /* Cards */
+    .card { border-radius: 14px; padding: 18px; border-width: 1px; border-style: solid; margin-bottom: 14px; }
+    .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; opacity: .5; margin-bottom: 12px; }
+    /* Product grid */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .product-card { border-radius: 12px; padding: 14px; border-width: 1px; border-style: solid; display: flex; flex-direction: column; gap: 8px; }
+    .product-name { font-size: 13px; font-weight: 700; }
+    .product-price { font-size: 12px; font-weight: 600; color: #00bc89; }
+    .product-category { font-size: 11px; opacity: .5; }
+    .product-actions { display: flex; gap: 6px; margin-top: auto; }
+    /* Filters / search */
+    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .btn-filter { padding: 5px 12px; font-size: 12px; }
+    .search-input { width: 100%; margin-bottom: 10px; }
+    /* Cart items */
+    .cart-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom-width: 1px; border-bottom-style: solid; }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item-name { flex: 1; font-size: 13px; font-weight: 600; }
+    .cart-item-price { font-size: 12px; opacity: .55; }
+    .qty-row { display: flex; align-items: center; gap: 4px; }
+    .qty { font-size: 13px; font-weight: 700; min-width: 20px; text-align: center; }
+    .btn-sm { padding: 3px 8px; font-size: 12px; }
+    .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 15px; margin-top: 10px; }
+    /* Login */
+    .login-form { display: flex; flex-direction: column; gap: 8px; }
+    /* Favorites */
+    .fav-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; border-bottom-width: 1px; border-bottom-style: solid; }
+    .fav-item:last-child { border-bottom: none; }
+    .empty { font-size: 13px; opacity: .45; font-style: italic; text-align: center; padding: 12px 0; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { createContext, useContext, useState, useReducer, useEffect, useRef } = React;
+
+    // ═══════════════════════════════════════════════════════
+    // MINIMAL ZUSTAND for CDN
+    // ═══════════════════════════════════════════════════════
+    function create(creator) {
+      let state;
+      const listeners = new Set();
+      const set = (updater) => {
+        const patch = typeof updater === 'function' ? updater(state) : updater;
+        state = Object.assign({}, state, patch);
+        listeners.forEach(fn => fn());
+      };
+      const get = () => state;
+      state = creator(set, get);
+      function useStore(selector) {
+        const sel = selector || (s => s);
+        const [val, setVal] = useState(() => sel(state));
+        useEffect(() => {
+          const update = () => setVal(prev => {
+            const next = sel(state);
+            return Object.is(prev, next) ? prev : next;
+          });
+          listeners.add(update);
+          return () => listeners.delete(update);
+        }, []);
+        return val;
+      }
+      return useStore;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 1. THEME CONTEXT
+    // ═══════════════════════════════════════════════════════
+    const ThemeContext = createContext();
+    function ThemeProvider({ children }) {
+      const [theme, setTheme] = useState("dark");
+      const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light");
+      return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
+    }
+    function useTheme() {
+      const ctx = useContext(ThemeContext);
+      if (!ctx) throw new Error("useTheme outside ThemeProvider");
+      return ctx;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 2. AUTH CONTEXT
+    // ═══════════════════════════════════════════════════════
+    const AuthContext = createContext();
+    function AuthProvider({ children }) {
+      const [user, setUser] = useState(null);
+      const login  = (email) => setUser({ email, name: email.split("@")[0] });
+      const logout = () => setUser(null);
+      return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+    }
+    function useAuth() {
+      const ctx = useContext(AuthContext);
+      if (!ctx) throw new Error("useAuth outside AuthProvider");
+      return ctx;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 3. CART REDUCER
+    // ═══════════════════════════════════════════════════════
+    function cartReducer(state, action) {
+      switch (action.type) {
+        case 'ADD_TO_CART': {
+          const ex = state.items.find(i => i.product.id === action.product.id);
+          if (ex) return { items: state.items.map(i => i.product.id === action.product.id ? { ...i, quantity: i.quantity + 1 } : i) };
+          return { items: [...state.items, { product: action.product, quantity: 1 }] };
+        }
+        case 'REMOVE_FROM_CART':
+          return { items: state.items.filter(i => i.product.id !== action.id) };
+        case 'UPDATE_QUANTITY':
+          return {
+            items: state.items
+              .map(i => i.product.id === action.id ? { ...i, quantity: Math.max(0, action.quantity) } : i)
+              .filter(i => i.quantity > 0),
+          };
+        case 'CLEAR_CART':
+          return { items: [] };
+        default:
+          return state;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 4. PRODUCT STORE (Zustand)
+    // ═══════════════════════════════════════════════════════
+    const useProductStore = create((set, get) => ({
+      products: [
+        { id: 1, name: "React книга",      price: 45, category: "books"       },
+        { id: 2, name: "JS тениска",        price: 30, category: "clothing"    },
+        { id: 3, name: "CSS стикери",       price: 5,  category: "accessories" },
+        { id: 4, name: "Node.js чаша",      price: 15, category: "accessories" },
+        { id: 5, name: "TypeScript курс",   price: 99, category: "courses"     },
+      ],
+      favorites:   [],
+      searchQuery: '',
+      category:    'all',
+
+      toggleFavorite: (id) => set(s => ({
+        favorites: s.favorites.includes(id)
+          ? s.favorites.filter(f => f !== id)
+          : [...s.favorites, id],
+      })),
+      setSearch:   (q) => set({ searchQuery: q }),
+      setCategory: (c) => set({ category: c }),
+
+      getFilteredProducts: () => {
+        const { products, searchQuery, category } = get();
+        let r = products;
+        if (category !== 'all') r = r.filter(p => p.category === category);
+        if (searchQuery) r = r.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        return r;
+      },
+      isFavorite: (id) => get().favorites.includes(id),
+    }));
+
+    // ═══════════════════════════════════════════════════════
+    // THEME HELPERS
+    // ═══════════════════════════════════════════════════════
+    function useT() {
+      const { theme } = useTheme();
+      const d = theme === "dark";
+      return {
+        d,
+        bg:      d ? "#0b1220" : "#f8fbff",
+        surface: d ? "#111a2e" : "#fff",
+        text:    d ? "#e7eefc" : "#0b1220",
+        muted:   d ? "#a7b4d6" : "#666",
+        border:  d ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+        navBg:   d ? "#111a2e" : "#017ae0",
+        sideBg:  d ? "rgba(255,255,255,0.02)" : "rgba(1,122,224,0.03)",
+      };
+    }
+
+    const CATEGORY_LABELS = { all: "Всички", books: "Книги", clothing: "Дрехи", accessories: "Аксесоари", courses: "Курсове" };
+    const CATEGORY_EMOJI  = { all: "🏷️", books: "📚", clothing: "👕", accessories: "🎨", courses: "🎓" };
+    const PRODUCT_EMOJI   = { books: "📚", clothing: "👕", accessories: "🎁", courses: "🎓" };
+
+    // ═══════════════════════════════════════════════════════
+    // COMPONENTS
+    // ═══════════════════════════════════════════════════════
+
+    function NavBar({ cartItemCount, cartDispatch }) {
+      const { theme, toggleTheme } = useTheme();
+      const { user, logout } = useAuth();
+      const t = useT();
+      return (
+        <div className="navbar" style={{
+          background: t.navBg, color: "#fff",
+          boxShadow: t.d ? "0 2px 16px rgba(0,0,0,0.35)" : "0 2px 12px rgba(1,122,224,0.3)",
+        }}>
+          <span className="navbar-brand">🛒 DevShop</span>
+          <div className="navbar-actions">
+            <button
+              onClick={toggleTheme}
+              style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
+            >
+              {t.d ? "☀️" : "🌙"}
+            </button>
+            <div className="cart-badge">
+              <button style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}>
+                🛒 Количка
+              </button>
+              {cartItemCount > 0 && <span className="badge">{cartItemCount}</span>}
+            </div>
+            {user
+              ? <React.Fragment>
+                  <span style={{ fontSize: 13, opacity: .9 }}>👤 {user.name}</span>
+                  <button onClick={logout} style={{ background: "#ff5241", color: "#fff" }}>Изход</button>
+                </React.Fragment>
+              : null
+            }
+          </div>
+        </div>
+      );
+    }
+
+    function SearchBar() {
+      const searchQuery = useProductStore(s => s.searchQuery);
+      const setSearch   = useProductStore(s => s.setSearch);
+      const t = useT();
+      return (
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Търсене на продукти..."
+          value={searchQuery}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            background: t.d ? "rgba(255,255,255,0.07)" : "#f0f7ff",
+            border: `1px solid ${t.border}`,
+            color: t.text,
+          }}
+        />
+      );
+    }
+
+    function CategoryFilter() {
+      const category    = useProductStore(s => s.category);
+      const setCategory = useProductStore(s => s.setCategory);
+      const t = useT();
+      return (
+        <div className="filter-row">
+          {Object.keys(CATEGORY_LABELS).map(c => (
+            <button
+              key={c}
+              className="btn-filter"
+              onClick={() => setCategory(c)}
+              style={{
+                background: category === c
+                  ? "rgba(1,122,224,0.2)" : t.d ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                color:    category === c ? "#017ae0" : t.text,
+                border:  `1px solid ${category === c ? "#017ae0" : t.border}`,
+              }}
+            >
+              {CATEGORY_EMOJI[c]} {CATEGORY_LABELS[c]}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    function ProductGrid({ onAddToCart }) {
+      const getFilteredProducts = useProductStore(s => s.getFilteredProducts);
+      const toggleFavorite      = useProductStore(s => s.toggleFavorite);
+      const isFavorite          = useProductStore(s => s.isFavorite);
+      // subscribe to changes
+      useProductStore(s => [s.products, s.searchQuery, s.category, s.favorites]);
+      const t = useT();
+      const products = getFilteredProducts();
+
+      if (products.length === 0) return <div className="empty">Няма намерени продукти</div>;
+
+      return (
+        <div className="product-grid">
+          {products.map(p => {
+            const fav = isFavorite(p.id);
+            return (
+              <div key={p.id} className="product-card" style={{
+                background: t.surface, color: t.text, borderColor: t.border,
+              }}>
+                <div style={{ fontSize: 28 }}>{PRODUCT_EMOJI[p.category] || "📦"}</div>
+                <div className="product-name">{p.name}</div>
+                <div className="product-category">{CATEGORY_LABELS[p.category]}</div>
+                <div className="product-price">{p.price} лв.</div>
+                <div className="product-actions">
+                  <button
+                    onClick={() => onAddToCart(p)}
+                    style={{ background: "#017ae0", color: "#fff", flex: 1, fontSize: 12 }}
+                  >
+                    + Купи
+                  </button>
+                  <button
+                    onClick={() => toggleFavorite(p.id)}
+                    style={{
+                      background: fav ? "rgba(255,82,65,0.15)" : t.d ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                      color: fav ? "#ff5241" : t.muted,
+                      padding: "8px 10px",
+                    }}
+                  >
+                    {fav ? "♥" : "♡"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function Cart({ items, dispatch }) {
+      const t = useT();
+      const total = items.reduce((s, i) => s + i.product.price * i.quantity, 0);
+      const count = items.reduce((s, i) => s + i.quantity, 0);
+      return (
+        <div className="card" style={{ background: t.surface, borderColor: t.border, color: t.text }}>
+          <div className="section-title">Количка ({count} арт.)</div>
+          {items.length === 0
+            ? <div className="empty">Празна количка</div>
+            : <React.Fragment>
+                {items.map(item => (
+                  <div key={item.product.id} className="cart-item" style={{ borderColor: t.border }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="cart-item-name">{item.product.name}</div>
+                      <div className="cart-item-price">{item.product.price} лв. × {item.quantity}</div>
+                    </div>
+                    <div className="qty-row">
+                      <button className="btn-sm"
+                        style={{ background: t.d ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)", color: t.text }}
+                        onClick={() => dispatch({ type: 'UPDATE_QUANTITY', id: item.product.id, quantity: item.quantity - 1 })}
+                      >−</button>
+                      <span className="qty">{item.quantity}</span>
+                      <button className="btn-sm"
+                        style={{ background: t.d ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)", color: t.text }}
+                        onClick={() => dispatch({ type: 'UPDATE_QUANTITY', id: item.product.id, quantity: item.quantity + 1 })}
+                      >+</button>
+                    </div>
+                    <button className="btn-sm"
+                      style={{ background: "rgba(255,82,65,0.15)", color: "#ff8a7a" }}
+                      onClick={() => dispatch({ type: 'REMOVE_FROM_CART', id: item.product.id })}
+                    >✕</button>
+                  </div>
+                ))}
+                <div className="total-row" style={{ color: "#00bc89" }}>
+                  <span>Общо:</span><span>{total} лв.</span>
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                  <button style={{ background: "#017ae0", color: "#fff", flex: 1 }}>Купи</button>
+                  <button
+                    onClick={() => dispatch({ type: 'CLEAR_CART' })}
+                    style={{ background: t.d ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)", color: t.text }}
+                  >
+                    Изчисти
+                  </button>
+                </div>
+              </React.Fragment>
+          }
+        </div>
+      );
+    }
+
+    function FavoritesPanel() {
+      const favorites = useProductStore(s => s.favorites);
+      const products  = useProductStore(s => s.products);
+      const toggleFavorite = useProductStore(s => s.toggleFavorite);
+      const t = useT();
+      const favProducts = products.filter(p => favorites.includes(p.id));
+      return (
+        <div className="card" style={{ background: t.surface, borderColor: t.border, color: t.text }}>
+          <div className="section-title">Любими ♥</div>
+          {favProducts.length === 0
+            ? <div className="empty">Няма любими</div>
+            : favProducts.map(p => (
+                <div key={p.id} className="fav-item" style={{ borderColor: t.border }}>
+                  <span style={{ flex: 1 }}>{p.name}</span>
+                  <span style={{ color: "#00bc89", fontSize: 12, fontWeight: 600 }}>{p.price} лв.</span>
+                  <button
+                    onClick={() => toggleFavorite(p.id)}
+                    style={{ background: "transparent", color: "#ff5241", fontSize: 16, padding: "2px 6px" }}
+                  >♥</button>
+                </div>
+              ))
+          }
+        </div>
+      );
+    }
+
+    function LoginForm() {
+      const { user, login, logout } = useAuth();
+      const t = useT();
+      const [email, setEmail] = useState("");
+      if (user) {
+        return (
+          <div className="card" style={{ background: t.surface, borderColor: t.border, color: t.text }}>
+            <div className="section-title">Профил</div>
+            <p style={{ fontSize: 14, marginBottom: 10 }}>👤 {user.name}</p>
+            <p style={{ fontSize: 12, color: t.muted, marginBottom: 12 }}>{user.email}</p>
+            <button onClick={logout} style={{ background: "#ff5241", color: "#fff", width: "100%" }}>Изход</button>
+          </div>
+        );
+      }
+      return (
+        <div className="card" style={{ background: t.surface, borderColor: t.border, color: t.text }}>
+          <div className="section-title">Вход</div>
+          <div className="login-form">
+            <input
+              type="email"
+              placeholder="email@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && email.trim() && login(email.trim())}
+              style={{
+                background: t.d ? "rgba(255,255,255,0.07)" : "#f0f7ff",
+                border: `1px solid ${t.border}`,
+                color: t.text,
+              }}
+            />
+            <button
+              onClick={() => email.trim() && login(email.trim())}
+              style={{ background: "#017ae0", color: "#fff" }}
+            >
+              Влез
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // APP
+    // ═══════════════════════════════════════════════════════
+    function AppContent() {
+      const [cart, cartDispatch] = useReducer(cartReducer, { items: [] });
+      const t = useT();
+
+      return (
+        <div style={{
+          background: t.d
+            ? "radial-gradient(900px 500px at 15% -10%,#1a2b5c,transparent 55%),radial-gradient(700px 400px at 90% 0%,#193a4a,transparent 45%),#0b1220"
+            : "#f8fbff",
+          color: t.text, minHeight: "100svh", transition: "background .3s, color .3s",
+        }}>
+          <NavBar cartItemCount={cart.items.reduce((s, i) => s + i.quantity, 0)} cartDispatch={cartDispatch} />
+          <div className="body-wrap">
+            <div className="main-col">
+              <SearchBar />
+              <CategoryFilter />
+              <ProductGrid onAddToCart={(p) => cartDispatch({ type: 'ADD_TO_CART', product: p })} />
+            </div>
+            <div className="side-col" style={{ borderColor: t.border, background: t.sideBg }}>
+              <LoginForm />
+              <Cart items={cart.items} dispatch={cartDispatch} />
+              <FavoritesPanel />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <ThemeProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </ThemeProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

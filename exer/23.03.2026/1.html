@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 1 – Брояч с useReducer</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2e;
+      --text: #e7eefc;
+      --muted: #a7b4d6;
+      --border: rgba(255,255,255,0.12);
+      --primary: #017ae0;
+      --danger: #ff5241;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%),
+                  radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
+    }
+    .page { width: min(480px, 100%); }
+    h1 { font-size: 18px; font-weight: 700; color: var(--muted); margin-bottom: 20px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 55%), var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .count {
+      font-size: 80px;
+      font-weight: 800;
+      text-align: center;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 28px;
+      letter-spacing: -2px;
+    }
+    .btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: opacity .15s;
+    }
+    button:hover { opacity: .8; }
+    button.neutral { background: rgba(255,255,255,0.1); color: var(--text); }
+    .history-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .history-list {
+      max-height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    .entry {
+      font-size: 13px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 5px 10px;
+      border-left: 3px solid var(--primary);
+    }
+    .empty { font-size: 13px; color: var(--muted); font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Задача 1 – Брояч с useReducer</h1>
+    <div id="root"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useReducer } = React;
+
+    function counterReducer(state, action) {
+      const log = (label, val) => `${label}  →  ${val}`;
+      switch (action.type) {
+        case 'INCREMENT':
+          return {
+            count: state.count + 1,
+            history: [...state.history, log("+1", state.count + 1)],
+          };
+        case 'DECREMENT':
+          return {
+            count: state.count - 1,
+            history: [...state.history, log("-1", state.count - 1)],
+          };
+        case 'RESET':
+          return {
+            count: 0,
+            history: [...state.history, log("reset", 0)],
+          };
+        case 'INCREMENT_BY':
+          return {
+            count: state.count + action.payload,
+            history: [...state.history, log(`+${action.payload}`, state.count + action.payload)],
+          };
+        default:
+          return state;
+      }
+    }
+
+    function Counter() {
+      const [state, dispatch] = useReducer(counterReducer, { count: 0, history: [] });
+
+      return (
+        <div className="card">
+          <div className="count">{state.count}</div>
+          <div className="btns">
+            <button onClick={() => dispatch({ type: 'DECREMENT' })}>-1</button>
+            <button className="neutral" onClick={() => dispatch({ type: 'RESET' })}>Reset</button>
+            <button onClick={() => dispatch({ type: 'INCREMENT' })}>+1</button>
+            <button onClick={() => dispatch({ type: 'INCREMENT_BY', payload: 10 })}>+10</button>
+          </div>
+          <div className="history-title">История на действията</div>
+          <div className="history-list">
+            {state.history.length === 0
+              ? <div className="empty">Натиснете бутон, за да започнете...</div>
+              : [...state.history].reverse().map((e, i) => (
+                  <div key={i} className="entry">{e}</div>
+                ))
+            }
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Counter />);
+  </script>
+</body>
+</html>

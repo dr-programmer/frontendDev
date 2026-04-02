@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 5 – Multi-Context Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; transition: background .3s, color .3s; min-height: 100svh; }
+    button {
+      padding: 8px 14px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+    input {
+      padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
+      font-size: 13px; outline: none; width: 100%; margin-bottom: 8px;
+    }
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; padding: 14px 24px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .header-brand { font-size: 18px; font-weight: 800; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .user-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+    }
+    /* Layout */
+    .body-layout { display: flex; min-height: calc(100svh - 57px); }
+    .sidebar { width: 200px; flex-shrink: 0; padding: 20px 14px; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 4px; }
+    .nav-item {
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background .15s;
+    }
+    .main { flex: 1; padding: 28px 24px; }
+    .welcome-card {
+      border-radius: 16px; padding: 28px;
+      border: 1px solid rgba(255,255,255,0.12);
+      max-width: 560px;
+    }
+    .welcome-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .welcome-card p { font-size: 14px; opacity: .7; margin-bottom: 18px; }
+    .login-card { border-radius: 16px; padding: 28px; max-width: 360px; border: 1px solid rgba(255,255,255,0.12); }
+    .login-card h2 { font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+    .stat-box { border-radius: 12px; padding: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+    .stat-val { font-size: 28px; font-weight: 800; color: #017ae0; }
+    .stat-lbl { font-size: 12px; opacity: .6; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { createContext, useContext, useState } = React;
+
+    // ── CONTEXT 1: Theme ──────────────────────────────────────
+    const ThemeContext = createContext();
+    function ThemeProvider({ children }) {
+      const [theme, setTheme] = useState("dark");
+      const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light");
+      return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
+    }
+    function useTheme() {
+      const ctx = useContext(ThemeContext);
+      if (!ctx) throw new Error("useTheme трябва да е в ThemeProvider!");
+      return ctx;
+    }
+
+    // ── CONTEXT 2: Auth ───────────────────────────────────────
+    const AuthContext = createContext();
+    function AuthProvider({ children }) {
+      const [user, setUser] = useState(null);
+      const login  = (name) => setUser({ name, role: "student" });
+      const logout = () => setUser(null);
+      return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+    }
+    function useAuth() {
+      const ctx = useContext(AuthContext);
+      if (!ctx) throw new Error("useAuth трябва да е в AuthProvider!");
+      return ctx;
+    }
+
+    // ── CONTEXT 3: Language ───────────────────────────────────
+    const translations = {
+      bg: { dashboard: "Табло", quizzes: "Тестове", settings: "Настройки",
+            welcome: "Добре дошли", login: "Вход", logout: "Изход",
+            name: "Вашето Име", role: "Роля" },
+      en: { dashboard: "Dashboard", quizzes: "Quizzes", settings: "Settings",
+            welcome: "Welcome", login: "Login", logout: "Logout",
+            name: "Your Name", role: "Role" },
+    };
+    const LangContext = createContext();
+    function LangProvider({ children }) {
+      const [lang, setLang] = useState("bg");
+      const t = (key) => translations[lang][key] || key;
+      const toggleLang = () => setLang(l => l === "bg" ? "en" : "bg");
+      return <LangContext.Provider value={{ lang, t, toggleLang }}>{children}</LangContext.Provider>;
+    }
+    function useLang() {
+      const ctx = useContext(LangContext);
+      if (!ctx) throw new Error("useLang трябва да е в LangProvider!");
+      return ctx;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────
+    function useColors() {
+      const { theme } = useTheme();
+      const dark = theme === "dark";
+      return {
+        dark,
+        bg:      dark ? "#0b1220" : "#f8fbff",
+        surface: dark ? "linear-gradient(180deg,rgba(255,255,255,.05),transparent 55%) #111a2e" : "#fff",
+        text:    dark ? "#e7eefc" : "#0b1220",
+        muted:   dark ? "#a7b4d6" : "#555",
+        border:  dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+        navHover:dark ? "rgba(255,255,255,0.07)" : "rgba(1,122,224,0.08)",
+      };
+    }
+
+    // ── Components ────────────────────────────────────────────
+    function Header() {
+      const { theme, toggleTheme } = useTheme();
+      const { user, login, logout } = useAuth();
+      const { lang, t, toggleLang } = useLang();
+      const { dark, text, border } = useColors();
+      const [nameInput, setNameInput] = useState("");
+
+      return (
+        <div className="header" style={{
+          background: dark ? "#111a2e" : "#017ae0",
+          color: "#fff",
+          borderBottom: `1px solid ${border}`,
+          boxShadow: dark ? "0 2px 16px rgba(0,0,0,0.3)" : "0 2px 12px rgba(1,122,224,0.3)",
+        }}>
+          <span className="header-brand">ППГИ Dashboard</span>
+          <div className="header-actions">
+            <button
+              onClick={toggleLang}
+              style={{ background: "rgba(255,255,255,0.18)", color: "#fff" }}
+            >
+              {lang === "bg" ? "🇧🇬 BG" : "🇬🇧 EN"}
+            </button>
+            <button
+              onClick={toggleTheme}
+              style={{ background: "rgba(255,255,255,0.18)", color: "#fff" }}
+            >
+              {dark ? "☀️" : "🌙"}
+            </button>
+            {user
+              ? (
+                <React.Fragment>
+                  <div className="user-chip" style={{ background: "rgba(255,255,255,0.18)" }}>
+                    👤 {user.name}
+                  </div>
+                  <button
+                    onClick={logout}
+                    style={{ background: "#ff5241", color: "#fff" }}
+                  >
+                    {t("logout")}
+                  </button>
+                </React.Fragment>
+              )
+              : (
+                <button
+                  onClick={() => {
+                    const n = prompt(lang === "bg" ? "Вашето Име:" : "Your Name:");
+                    if (n && n.trim()) login(n.trim());
+                  }}
+                  style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}
+                >
+                  {t("login")}
+                </button>
+              )
+            }
+          </div>
+        </div>
+      );
+    }
+
+    function Sidebar() {
+      const { t } = useLang();
+      const { dark, muted, navHover, border } = useColors();
+      const items = [
+        { key: "dashboard", icon: "🏠" },
+        { key: "quizzes",   icon: "📝" },
+        { key: "settings",  icon: "⚙️" },
+      ];
+      return (
+        <div className="sidebar" style={{
+          borderRight: `1px solid ${border}`,
+          background: dark ? "rgba(255,255,255,0.02)" : "rgba(1,122,224,0.04)",
+        }}>
+          <nav>
+            {items.map(item => (
+              <div key={item.key} className="nav-item"
+                style={{ color: dark ? "#e7eefc" : "#0b1220" }}
+                onMouseEnter={e => e.currentTarget.style.background = navHover}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              >
+                {item.icon} {t(item.key)}
+              </div>
+            ))}
+          </nav>
+        </div>
+      );
+    }
+
+    function MainContent() {
+      const { user, login } = useAuth();
+      const { t } = useLang();
+      const { dark, surface, text, border, muted } = useColors();
+      const [name, setName] = useState("");
+
+      if (!user) {
+        return (
+          <div className="main">
+            <div className="login-card" style={{ background: surface, color: text, borderColor: border }}>
+              <h2>{t("login")}</h2>
+              <input
+                placeholder={t("name")}
+                value={name}
+                onChange={e => setName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && name.trim() && login(name.trim())}
+                style={{
+                  background: dark ? "rgba(255,255,255,0.07)" : "#f0f7ff",
+                  color: text,
+                }}
+              />
+              <button
+                onClick={() => name.trim() && login(name.trim())}
+                style={{ background: "#017ae0", color: "#fff", width: "100%" }}
+              >
+                {t("login")}
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="main">
+          <div className="welcome-card" style={{ background: surface, color: text, borderColor: border }}>
+            <h2>{t("welcome")}, {user.name}! 👋</h2>
+            <p style={{ color: muted }}>{t("role")}: {user.role}</p>
+            <div className="stat-grid">
+              {[
+                { val: 7, lbl: t("quizzes") },
+                { val: 92, lbl: "%" },
+                { val: 14, lbl: "Дни" },
+              ].map((s, i) => (
+                <div key={i} className="stat-box" style={{ background: dark ? "#0e1628" : "#f0f7ff", borderColor: border }}>
+                  <div className="stat-val">{s.val}</div>
+                  <div className="stat-lbl" style={{ color: muted }}>{s.lbl}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const { dark, bg, text } = useColors();
+      return (
+        <div style={{ background: dark
+            ? "radial-gradient(900px 500px at 15% -10%,#1a2b5c,transparent 55%),radial-gradient(700px 400px at 90% 0%,#193a4a,transparent 45%),#0b1220"
+            : "#f8fbff",
+          color: text, minHeight: "100svh", transition: "background .3s, color .3s"
+        }}>
+          <Header />
+          <div className="body-layout">
+            <Sidebar />
+            <MainContent />
+          </div>
+        </div>
+      );
+    }
+
+    function Root() {
+      return (
+        <ThemeProvider>
+          <AuthProvider>
+            <LangProvider>
+              <App />
+            </LangProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Root />);
+  </script>
+</body>
+</html>

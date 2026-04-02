@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 3 – Система за известия с Context + useReducer</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2e;
+      --text: #e7eefc;
+      --muted: #a7b4d6;
+      --border: rgba(255,255,255,0.12);
+      --primary: #017ae0;
+      --success: #00bc89;
+      --danger: #ff5241;
+      --warning: #ffa807;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%),
+                  radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      padding: 28px 16px;
+    }
+    .page { width: min(560px, 100%); margin: 0 auto; }
+    h1 { font-size: 18px; font-weight: 700; color: var(--muted); margin-bottom: 20px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 55%), var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    button {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+    .btn-success { background: var(--success); }
+    .btn-danger  { background: var(--danger); }
+    .btn-warning { background: var(--warning); color: #1a1000; }
+    .btn-neutral { background: rgba(255,255,255,0.1); color: var(--text); }
+    .panel-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--danger);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 24px;
+      height: 24px;
+      border-radius: 99px;
+      padding: 0 6px;
+    }
+    .count-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .notif-list { display: flex; flex-direction: column; gap: 8px; }
+    .notif {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      animation: slideIn .2s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .notif.success { background: rgba(0,188,137,0.15); border: 1px solid rgba(0,188,137,0.3); color: #4dffd4; }
+    .notif.error   { background: rgba(255,82,65,0.15);  border: 1px solid rgba(255,82,65,0.3);  color: #ff8a7a; }
+    .notif.warning { background: rgba(255,168,7,0.15);  border: 1px solid rgba(255,168,7,0.3);  color: #ffd066; }
+    .notif-icon { font-size: 18px; flex-shrink: 0; }
+    .notif-msg  { flex: 1; }
+    .close-btn {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .empty { font-size: 13px; color: var(--muted); font-style: italic; text-align: center; padding: 12px 0; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Задача 3 – Система за известия</h1>
+    <div id="root"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { createContext, useContext, useReducer } = React;
+
+    // Reducer
+    function notificationReducer(state, action) {
+      switch (action.type) {
+        case 'ADD':
+          return [...state, { id: action.id, type: action.notifType, message: action.message }];
+        case 'REMOVE':
+          return state.filter(n => n.id !== action.id);
+        case 'CLEAR_ALL':
+          return [];
+        default:
+          return state;
+      }
+    }
+
+    // Context + Provider
+    const NotificationContext = createContext();
+
+    function NotificationProvider({ children }) {
+      const [notifications, dispatch] = useReducer(notificationReducer, []);
+
+      const addNotification = (type, message) => {
+        const id = Date.now() + Math.random();
+        dispatch({ type: 'ADD', id, notifType: type, message });
+        // Bonus: auto-dismiss after 5s
+        setTimeout(() => dispatch({ type: 'REMOVE', id }), 5000);
+      };
+
+      const removeNotification = (id) => dispatch({ type: 'REMOVE', id });
+      const clearAll = () => dispatch({ type: 'CLEAR_ALL' });
+
+      return (
+        <NotificationContext.Provider value={{ notifications, addNotification, removeNotification, clearAll }}>
+          {children}
+        </NotificationContext.Provider>
+      );
+    }
+
+    function useNotifications() {
+      const ctx = useContext(NotificationContext);
+      if (!ctx) throw new Error("Трябва NotificationProvider!");
+      return ctx;
+    }
+
+    // Components
+    function NotificationCount() {
+      const { notifications } = useNotifications();
+      return (
+        <div className="card">
+          <div className="count-row">
+            <span>Активни известия</span>
+            <span className="badge">{notifications.length}</span>
+          </div>
+        </div>
+      );
+    }
+
+    function AddNotificationPanel() {
+      const { addNotification } = useNotifications();
+      return (
+        <div className="card">
+          <div className="card-title">Добави известие</div>
+          <div className="panel-btns">
+            <button className="btn-success" onClick={() => addNotification("success", "Операцията е успешна!")}>
+              ✓ Успех
+            </button>
+            <button className="btn-danger" onClick={() => addNotification("error", "Нещо се обърка!")}>
+              ✕ Грешка
+            </button>
+            <button className="btn-warning" onClick={() => addNotification("warning", "Внимавайте!")}>
+              ⚠ Внимание
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    const ICON = { success: "✓", error: "✕", warning: "⚠" };
+
+    function NotificationList() {
+      const { notifications, removeNotification } = useNotifications();
+      return (
+        <div className="card">
+          <div className="card-title">Известия (изчезват след 5 сек.)</div>
+          <div className="notif-list">
+            {notifications.length === 0
+              ? <div className="empty">Няма известия</div>
+              : notifications.map(n => (
+                  <div key={n.id} className={`notif ${n.type}`}>
+                    <span className="notif-icon">{ICON[n.type]}</span>
+                    <span className="notif-msg">{n.message}</span>
+                    <button className="close-btn" onClick={() => removeNotification(n.id)}>✕</button>
+                  </div>
+                ))
+            }
+          </div>
+        </div>
+      );
+    }
+
+    function ClearAllButton() {
+      const { notifications, clearAll } = useNotifications();
+      if (notifications.length === 0) return null;
+      return (
+        <div className="card">
+          <button className="btn-neutral" onClick={clearAll}>
+            Изчисти всички ({notifications.length})
+          </button>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <NotificationProvider>
+          <NotificationCount />
+          <AddNotificationPanel />
+          <NotificationList />
+          <ClearAllButton />
+        </NotificationProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

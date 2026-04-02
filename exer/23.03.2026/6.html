@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задача 6 – Todo App със Zustand</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2e;
+      --text: #e7eefc;
+      --muted: #a7b4d6;
+      --border: rgba(255,255,255,0.12);
+      --primary: #017ae0;
+      --success: #00bc89;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: radial-gradient(900px 500px at 15% -10%, #1a2b5c, transparent 55%),
+                  radial-gradient(700px 400px at 90% 0%, #193a4a, transparent 45%), var(--bg);
+      color: var(--text);
+      min-height: 100svh;
+      padding: 28px 16px;
+    }
+    .page { width: min(600px, 100%); margin: 0 auto; }
+    h1 { font-size: 18px; font-weight: 700; color: var(--muted); margin-bottom: 20px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 55%), var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin-bottom: 12px;
+    }
+    input[type="text"] {
+      width: 100%; padding: 10px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input[type="text"]:focus { border-color: var(--primary); }
+    button {
+      padding: 8px 16px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      color: #fff; transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+    .btn-primary { background: var(--primary); }
+    .btn-filter {
+      background: rgba(255,255,255,0.1); color: var(--text);
+      border: 1px solid transparent;
+    }
+    .btn-filter.active {
+      background: rgba(1,122,224,0.2);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .filter-row { display: flex; gap: 8px; }
+    .search-add { display: flex; gap: 8px; margin-bottom: 0; }
+    .search-add input { flex: 1; }
+    .todo-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      animation: fadeIn .15s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .todo-item:last-child { border-bottom: none; }
+    .todo-text {
+      flex: 1; font-size: 14px;
+      transition: opacity .15s, text-decoration .15s;
+    }
+    .todo-text.done {
+      text-decoration: line-through;
+      opacity: .45;
+    }
+    .todo-del {
+      background: rgba(255,82,65,0.15);
+      color: #ff8a7a;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    .todo-del:hover { background: rgba(255,82,65,0.3); opacity: 1; }
+    input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat-val { font-size: 24px; font-weight: 800; color: var(--primary); }
+    .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .progress-bar {
+      height: 8px; border-radius: 99px;
+      background: rgba(255,255,255,0.1);
+      margin-top: 14px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, #017ae0, #00bc89);
+      transition: width .4s ease;
+    }
+    .empty { font-size: 13px; color: var(--muted); font-style: italic; text-align: center; padding: 16px 0; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Задача 6 – Todo App със Zustand</h1>
+    <div id="root"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+  <script type="text/babel">
+    // ── Minimal Zustand-compatible store for CDN use ──────────
+    function create(creator) {
+      let state;
+      const listeners = new Set();
+
+      const set = (updater) => {
+        const patch = typeof updater === 'function' ? updater(state) : updater;
+        state = Object.assign({}, state, patch);
+        listeners.forEach(fn => fn());
+      };
+
+      const get = () => state;
+
+      state = creator(set, get);
+
+      function useStore(selector) {
+        const sel = selector || (s => s);
+        const [val, setVal] = React.useState(() => sel(state));
+        React.useEffect(() => {
+          const update = () => {
+            setVal(prev => {
+              const next = sel(state);
+              return Object.is(prev, next) ? prev : next;
+            });
+          };
+          listeners.add(update);
+          return () => listeners.delete(update);
+        }, []);
+        return val;
+      }
+
+      return useStore;
+    }
+
+    // ── Zustand Store ─────────────────────────────────────────
+    const useTodoStore = create((set, get) => ({
+      todos: [
+        { id: 1, text: "Научи useReducer",  done: true  },
+        { id: 2, text: "Научи Context API", done: true  },
+        { id: 3, text: "Научи Zustand",     done: false },
+        { id: 4, text: "Направи проект",    done: false },
+      ],
+      filter: 'all',
+      searchQuery: '',
+
+      addTodo: (text) => set(s => ({
+        todos: [...s.todos, { id: Date.now(), text, done: false }],
+      })),
+
+      toggleTodo: (id) => set(s => ({
+        todos: s.todos.map(t => t.id === id ? { ...t, done: !t.done } : t),
+      })),
+
+      deleteTodo: (id) => set(s => ({
+        todos: s.todos.filter(t => t.id !== id),
+      })),
+
+      setFilter: (filter) => set({ filter }),
+      setSearch: (searchQuery) => set({ searchQuery }),
+
+      getFilteredTodos: () => {
+        const { todos, filter, searchQuery } = get();
+        let result = todos;
+        if (filter === 'active')    result = result.filter(t => !t.done);
+        if (filter === 'completed') result = result.filter(t =>  t.done);
+        if (searchQuery) {
+          result = result.filter(t =>
+            t.text.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+        return result;
+      },
+
+      getStats: () => {
+        const { todos } = get();
+        return {
+          total:     todos.length,
+          done:      todos.filter(t =>  t.done).length,
+          remaining: todos.filter(t => !t.done).length,
+        };
+      },
+    }));
+
+    // ── Components ────────────────────────────────────────────
+    function SearchInput() {
+      const searchQuery = useTodoStore(s => s.searchQuery);
+      const setSearch   = useTodoStore(s => s.setSearch);
+      return (
+        <input
+          type="text"
+          placeholder="Търсене..."
+          value={searchQuery}
+          onChange={e => setSearch(e.target.value)}
+        />
+      );
+    }
+
+    function FilterButtons() {
+      const filter    = useTodoStore(s => s.filter);
+      const setFilter = useTodoStore(s => s.setFilter);
+      const FILTERS = [
+        { val: 'all',       label: 'Всички' },
+        { val: 'active',    label: 'Активни' },
+        { val: 'completed', label: 'Завършени' },
+      ];
+      return (
+        <div className="filter-row">
+          {FILTERS.map(f => (
+            <button
+              key={f.val}
+              className={`btn-filter ${filter === f.val ? 'active' : ''}`}
+              onClick={() => setFilter(f.val)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    function TodoItem({ todo }) {
+      const toggleTodo = useTodoStore(s => s.toggleTodo);
+      const deleteTodo = useTodoStore(s => s.deleteTodo);
+      return (
+        <div className="todo-item">
+          <input
+            type="checkbox"
+            checked={todo.done}
+            onChange={() => toggleTodo(todo.id)}
+          />
+          <span className={`todo-text ${todo.done ? 'done' : ''}`}>{todo.text}</span>
+          <button className="todo-del" onClick={() => deleteTodo(todo.id)}>✕</button>
+        </div>
+      );
+    }
+
+    function TodoList() {
+      const getFilteredTodos = useTodoStore(s => s.getFilteredTodos);
+      // Re-trigger when todos/filter/search change by subscribing to the full state
+      useTodoStore(s => [s.todos, s.filter, s.searchQuery]);
+      const todos = getFilteredTodos();
+      if (todos.length === 0) {
+        return <div className="empty">Няма намерени задачи</div>;
+      }
+      return (
+        <div>
+          {todos.map(t => <TodoItem key={t.id} todo={t} />)}
+        </div>
+      );
+    }
+
+    function Stats() {
+      const getStats = useTodoStore(s => s.getStats);
+      useTodoStore(s => s.todos); // subscribe to todos changes
+      const { total, done, remaining } = getStats();
+      const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+      return (
+        <div className="card">
+          <div className="section-title">Статистики</div>
+          <div className="stats-row">
+            <div className="stat"><div className="stat-val">{total}</div><div className="stat-lbl">Общо</div></div>
+            <div className="stat"><div className="stat-val" style={{ color: "#00bc89" }}>{done}</div><div className="stat-lbl">Завършени</div></div>
+            <div className="stat"><div className="stat-val" style={{ color: "#ffa807" }}>{remaining}</div><div className="stat-lbl">Активни</div></div>
+            <div className="stat"><div className="stat-val">{pct}%</div><div className="stat-lbl">Прогрес</div></div>
+          </div>
+          <div className="progress-bar">
+            <div className="progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      );
+    }
+
+    function AddTodoForm() {
+      const addTodo = useTodoStore(s => s.addTodo);
+      const [text, setText] = React.useState("");
+      const submit = () => {
+        if (text.trim()) { addTodo(text.trim()); setText(""); }
+      };
+      return (
+        <div className="card">
+          <div className="section-title">Добави задача</div>
+          <div className="search-add">
+            <input
+              type="text"
+              placeholder="Нова задача..."
+              value={text}
+              onChange={e => setText(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && submit()}
+            />
+            <button className="btn-primary" onClick={submit}>+ Добави</button>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <div>
+          <Stats />
+          <AddTodoForm />
+          <div className="card">
+            <div className="section-title">Задачи</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+              <SearchInput />
+              <FilterButtons />
+            </div>
+            <TodoList />
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
